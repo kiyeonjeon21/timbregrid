@@ -63,7 +63,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
 - [x] Add a direct OpenAI SDK usage example beyond compatibility tests.
 - [ ] Add TTS backend integration examples for Open WebUI, Pipecat, and LiveKit.
-  - Partial: an Open WebUI TTS backend guide, Open WebUI compose example, Kokoro real-audio demo guide, external Speaches doctor proof guide, and doctor readiness report exist.
+  - Partial: an Open WebUI TTS backend guide, Open WebUI compose example, Kokoro real-audio demo guide, external Speaches doctor proof guide, real-server demo guide, and doctor readiness report viewer exist.
 - [x] Add a small standalone doctor report viewer before a broader WebUI.
   - A focused viewer makes doctor reports easier to understand without implying TimbreGrid owns another app's frontend.
   - A short Remotion-generated demo video may help explain the flow once real external doctor reports exist; it should stay a docs/demo asset, not a runtime dependency.
@@ -102,7 +102,7 @@ Success means:
 1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro, KittenTTS, and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
 2. **Expressive/cloning adapter**: add Chatterbox or a similar backend behind optional dependencies, using the existing voice governance checks.
 3. **Registry hardening**: add checksum metadata checks, broader optional install smoke coverage, and periodic release install smoke checks.
-4. **Integration examples**: use doctor reports and the local viewer to harden external-server proofs and the Open WebUI TTS backend guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
+4. **Integration examples**: publish reviewed real external-server doctor report artifacts, use them to harden the Open WebUI TTS backend guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
 
 ## Technical Choices
 

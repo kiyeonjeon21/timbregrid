@@ -48,7 +48,7 @@ uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8000/v1 \
   --output doctor.json
 ```
 
-For a complete external-server proof with Speaches, see [`docs/external-server-proof.md`](docs/external-server-proof.md).
+For a complete external-server proof with Speaches, see [`docs/external-server-proof.md`](docs/external-server-proof.md). For a demo flow that pairs real audio with the doctor report viewer, see [`docs/real-server-demo.md`](docs/real-server-demo.md).
 
 If you do not already have a TTS server, try TimbreGrid's deterministic reference gateway without downloading model weights. The built-in fake adapter exists so manifests, benchmarks, conformance, routing, Docker, and SDK compatibility can be tested quickly.
 
@@ -247,7 +247,7 @@ uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8000/v1 \
   --output demo-assets/speaches-doctor.json
 ```
 
-Open [`examples/doctor-report-viewer.html`](examples/doctor-report-viewer.html) in a browser to inspect a local `doctor.json` report with readiness cards and failed-case filtering. The viewer is a static local file and does not upload reports.
+Open [`examples/doctor-report-viewer.html`](examples/doctor-report-viewer.html) in a browser to inspect a local `doctor.json` report with readiness cards, failed-case filtering, optional evidence audio playback, and generated backend settings. The viewer is a static local file and does not upload reports.
 
 Run conformance checks against any OpenAI-compatible TTS server:
 
@@ -333,6 +333,7 @@ TimbreGrid can be used as a local OpenAI-compatible TTS backend for tools that c
 
 - [Open WebUI TTS backend guide](docs/integrations/open-webui.md)
 - [Open WebUI TTS backend compose example](examples/open-webui-compose.yml)
+- [Real server demo with audio and doctor report](docs/real-server-demo.md)
 - [External server proof with Speaches](docs/external-server-proof.md)
 - [Local doctor report viewer](examples/doctor-report-viewer.html)
 
@@ -396,13 +397,13 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and Kokoro/KittenTTS Apple Silicon artifacts exist; broader hardware coverage still needs contributors. |
 | Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro and KittenTTS adapters, Docker smoke path, and benchmark-aware routing work; expressive/cloning adapters are next. |
 | Phase 3: Community registry | partial | Local registry, generated support matrix, release assets, hosted latest registry, PR/issue templates, deterministic registry audit, scheduled URL audit, and CI checks exist; checksum validation and broader install smoke coverage remain. |
-| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, synthesis-time voice checks, a real-audio demo guide, doctor report viewer, and Open WebUI TTS backend docs exist; Pipecat and LiveKit examples remain. |
+| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, synthesis-time voice checks, real-audio and real-server demo guides, doctor report viewer, and Open WebUI TTS backend docs exist; Pipecat and LiveKit examples remain. |
 
 Near-term next work:
 
 - Capture real external-server doctor reports, starting with Speaches and then LocalAI where feasible.
 - Use `timbregrid doctor` reports to harden TTS backend integration examples (Open WebUI TTS backend guide and compose example wired to `doctor` preflight; Pipecat and LiveKit pending).
-- Capture a real viewer-backed doctor report walkthrough after external Speaches or LocalAI runs are available.
+- Publish reviewed real external-server doctor report artifacts after Speaches or LocalAI runs are repeatable across maintainer environments.
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
 - Harden checksum metadata and broader optional install smoke coverage.

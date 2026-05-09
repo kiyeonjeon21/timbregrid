@@ -6,6 +6,8 @@ This guide uses Speaches as the first external proof target because Speaches is 
 
 Generated reports should go under `demo-assets/`, which is ignored by git.
 
+For a shorter demo script that pairs real audio with the local viewer, see [`real-server-demo.md`](real-server-demo.md).
+
 ## Start Speaches
 
 Follow the Speaches installation guide for the target machine. A CPU Docker run from the official docs looks like:
@@ -72,7 +74,7 @@ jq '.summary, .integration_readiness, .conformance.cases[] | {name, passed, stat
   demo-assets/speaches-doctor.json
 ```
 
-You can also open [`../examples/doctor-report-viewer.html`](../examples/doctor-report-viewer.html) in a browser and drop `demo-assets/speaches-doctor.json` into it.
+You can also open [`../examples/doctor-report-viewer.html`](../examples/doctor-report-viewer.html) in a browser, drop `demo-assets/speaches-doctor.json` into it, and attach `demo-assets/speaches-direct.wav` as evidence audio.
 
 ## Use The Report
 
