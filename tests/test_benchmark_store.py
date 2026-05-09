@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from timbregrid.benchmark_store import BenchmarkStoreError, best_benchmark, load_benchmark_results
+from timbregrid.benchmark_store import (
+    BenchmarkStoreError,
+    best_benchmark,
+    load_benchmark_results,
+    validate_benchmark_result,
+)
 
 
 def test_load_example_benchmark_results() -> None:
@@ -41,6 +46,13 @@ def test_best_benchmark_returns_none_for_profile_miss() -> None:
     assert benchmark is None
 
 
+def test_validate_benchmark_result_accepts_example() -> None:
+    result = validate_benchmark_result(Path("benchmarks/examples/fake-tts.realtime-agent.json"))
+
+    assert result.model == "fake:tts"
+    assert result.suite == "realtime-agent"
+
+
 def test_load_benchmark_results_rejects_invalid_json(tmp_path: Path) -> None:
     (tmp_path / "bad.json").write_text("{", encoding="utf-8")
 
@@ -53,3 +65,13 @@ def test_load_benchmark_results_rejects_invalid_schema(tmp_path: Path) -> None:
 
     with pytest.raises(BenchmarkStoreError, match="Invalid benchmark schema"):
         load_benchmark_results(tmp_path)
+
+
+def test_validate_benchmark_result_rejects_metric_mismatch(tmp_path: Path) -> None:
+    source = Path("benchmarks/examples/fake-tts.realtime-agent.json")
+    body = source.read_text(encoding="utf-8").replace('"runs": 3', '"runs": 99', 1)
+    path = tmp_path / "bad-metrics.json"
+    path.write_text(body, encoding="utf-8")
+
+    with pytest.raises(BenchmarkStoreError, match="runs=99"):
+        validate_benchmark_result(path)

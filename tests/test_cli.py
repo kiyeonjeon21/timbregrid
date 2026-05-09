@@ -61,6 +61,27 @@ def test_bench_cli_lists_available_suites_for_unknown_suite(tmp_path: Path) -> N
     assert "narration" in result.stderr
 
 
+def test_bench_validate_cli_accepts_example() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["bench", "validate", "benchmarks/examples/fake-tts.realtime-agent.json"],
+    )
+
+    assert result.exit_code == 0
+    assert "OK benchmarks/examples/fake-tts.realtime-agent.json" in result.stdout
+    assert "fake:tts" in result.stdout
+
+
+def test_bench_validate_cli_rejects_invalid_json(tmp_path: Path) -> None:
+    path = tmp_path / "bad.json"
+    path.write_text("{", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["bench", "validate", str(path)])
+
+    assert result.exit_code == 1
+    assert "Invalid benchmark JSON" in result.stderr
+
+
 def test_models_list_cli_includes_known_models() -> None:
     result = CliRunner().invoke(app, ["models", "list"])
 

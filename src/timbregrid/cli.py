@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from timbregrid.bench import run_benchmark, write_benchmark
+from timbregrid.benchmark_store import BenchmarkStoreError, validate_benchmark_result
 from timbregrid.conformance import run_conformance, write_conformance_report
 from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
@@ -40,12 +41,29 @@ def validate_manifest(path: Annotated[Path, typer.Argument(exists=True, dir_okay
 
 @app.command()
 def bench(
-    model: Annotated[str, typer.Argument()],
+    model: Annotated[str, typer.Argument(help="Model id, or 'validate' to validate benchmark JSON.")],
+    benchmark_path: Annotated[Path | None, typer.Argument(exists=True, dir_okay=False)] = None,
     suite: Annotated[str, typer.Option("--suite")] = "realtime-agent",
     voice: Annotated[str | None, typer.Option("--voice")] = None,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
     output_format: Annotated[str, typer.Option("--format")] = "json",
 ) -> None:
+    if model == "validate":
+        if benchmark_path is None:
+            typer.echo("Usage: timbregrid bench validate <benchmark.json>", err=True)
+            raise typer.Exit(1)
+        try:
+            result = validate_benchmark_result(benchmark_path)
+        except BenchmarkStoreError as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(1) from exc
+        typer.echo(f"OK {benchmark_path} ({result.model}, {result.suite})")
+        return
+
+    if benchmark_path is not None:
+        typer.echo("Unexpected benchmark path. Use: timbregrid bench validate <benchmark.json>", err=True)
+        raise typer.Exit(1)
+
     if output_format != "json":
         typer.echo("Only --format json is supported in the MVP", err=True)
         raise typer.Exit(1)

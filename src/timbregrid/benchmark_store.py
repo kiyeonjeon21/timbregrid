@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from timbregrid.benchmark_suites import get_benchmark_suite
 from timbregrid.models import BenchmarkResult
 
 
@@ -48,6 +49,44 @@ def load_benchmark_results(benchmark_dir: Path | None) -> list[BenchmarkResult]:
             raise BenchmarkStoreError(f"Invalid benchmark schema: {path}: {exc}") from exc
 
     return results
+
+
+def load_benchmark_result(path: Path) -> BenchmarkResult:
+    if not path.exists():
+        raise BenchmarkStoreError(f"Benchmark file does not exist: {path}")
+    if not path.is_file():
+        raise BenchmarkStoreError(f"Benchmark path is not a file: {path}")
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BenchmarkStoreError(f"Invalid benchmark JSON: {path}") from exc
+
+    try:
+        return BenchmarkResult.model_validate(raw)
+    except ValidationError as exc:
+        raise BenchmarkStoreError(f"Invalid benchmark schema: {path}: {exc}") from exc
+
+
+def validate_benchmark_result(path: Path) -> BenchmarkResult:
+    result = load_benchmark_result(path)
+    try:
+        get_benchmark_suite(result.suite)
+    except ValueError as exc:
+        raise BenchmarkStoreError(str(exc)) from exc
+
+    runs = int(result.metrics.get("runs", -1))
+    failures = int(result.metrics.get("failures", -1))
+    actual_failures = len([run for run in result.runs if not run.ok])
+    if runs != len(result.runs):
+        raise BenchmarkStoreError(
+            f"Invalid benchmark metrics: runs={runs} does not match {len(result.runs)} run entries"
+        )
+    if failures != actual_failures:
+        raise BenchmarkStoreError(
+            f"Invalid benchmark metrics: failures={failures} does not match {actual_failures} failed runs"
+        )
+    return result
 
 
 def best_benchmark(

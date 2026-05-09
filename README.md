@@ -96,6 +96,7 @@ Works today:
 - generate a static model registry index and support matrix from manifests;
 - route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy;
 - run fake-adapter benchmark suites and write raw JSON output;
+- validate benchmark JSON examples and submissions;
 - define benchmark prompt suites for realtime-agent, narration, multilingual, cloning, and dialogue;
 - include manifest-only registry examples for KittenTTS, Chatterbox, and Qwen3-TTS;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
@@ -525,8 +526,8 @@ See [`docs/codex-workflow.md`](docs/codex-workflow.md) for the management model.
 - [x] `timbregrid manifest validate`;
 - [x] `timbregrid bench` against a local adapter;
 - [x] `timbregrid conformance` against an existing OpenAI-compatible TTS server;
-- [ ] publish raw benchmark JSON examples for Apple Silicon, CPU, and CUDA where available (partial: deterministic fake benchmark example exists);
-- [ ] document how other servers can use the tests (partial: JSON conformance reports are implemented).
+- [ ] publish raw benchmark JSON examples for Apple Silicon, CPU, and CUDA where available (partial: deterministic fake benchmark example and validation path exist);
+- [x] document how other servers can use the tests.
 
 ### Phase 2: Reference Gateway MVP
 
@@ -543,7 +544,7 @@ See [`docs/codex-workflow.md`](docs/codex-workflow.md) for the management model.
 - [ ] manifest PR template;
 - [ ] CI validation for manifest schema, links, checksums, licenses, and install smoke tests (partial: tests, manifest validation, registry drift check, and fake benchmark smoke run in CI);
 - [x] model support matrix generated from manifests;
-- [ ] benchmark result submission format.
+- [x] benchmark result submission format.
 
 ### Phase 4: Voice Governance And Integrations
 
