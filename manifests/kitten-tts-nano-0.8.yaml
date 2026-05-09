@@ -1,0 +1,33 @@
+schema_version: "0.1"
+id: kitten-tts:nano-0.8
+name: KittenTTS Nano 0.8
+upstream:
+  homepage: https://github.com/KittenML/KittenTTS
+  license: apache-2.0
+  weights: https://huggingface.co/KittenML/kitten-tts-nano-0.8-fp32
+runtime:
+  kind: python
+  package: kittentts
+  acceleration:
+    cpu: true
+    cuda: false
+    metal: false
+capabilities:
+  streaming: false
+  voice_cloning: false
+  multilingual: none
+  long_form: limited
+  style_control: speed
+  formats: [wav, pcm]
+audio:
+  sample_rate_hz: 24000
+  formats: [wav, pcm]
+voices:
+  builtin: true
+  custom: false
+policy:
+  commercial_use: true
+  requires_voice_consent: false
+notes:
+  - "Manifest-only example for lightweight ONNX/CPU edge TTS."
+  - "Official docs describe 15M to 80M parameter variants and built-in voices."

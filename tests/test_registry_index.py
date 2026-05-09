@@ -13,8 +13,14 @@ def test_build_registry_index_uses_current_manifests() -> None:
     index = build_registry_index(Path("manifests"))
 
     assert index["schema_version"] == "0.1"
-    assert index["model_count"] == 2
-    assert [model["id"] for model in index["models"]] == ["fake:tts", "kokoro:82m"]
+    assert index["model_count"] == 5
+    assert [model["id"] for model in index["models"]] == [
+        "chatterbox:tts",
+        "fake:tts",
+        "kitten-tts:nano-0.8",
+        "kokoro:82m",
+        "qwen3-tts:0.6b-base",
+    ]
 
 
 def test_registry_index_merges_static_runtime_status() -> None:
@@ -26,6 +32,9 @@ def test_registry_index_merges_static_runtime_status() -> None:
     assert models["kokoro:82m"]["available"] is False
     assert models["kokoro:82m"]["requires_extra"] == "kokoro"
     assert models["kokoro:82m"]["status"] == "requires optional dependency: kokoro"
+    assert models["chatterbox:tts"]["available"] is False
+    assert models["chatterbox:tts"]["executable"] is False
+    assert models["chatterbox:tts"]["status"] == "manifest-only"
 
 
 def test_registry_artifacts_are_deterministic() -> None:
@@ -34,7 +43,7 @@ def test_registry_artifacts_are_deterministic() -> None:
 
     assert first == second
     body = json.loads(first.index_json)
-    assert body["models"][0]["id"] == "fake:tts"
+    assert {model["id"] for model in body["models"]} >= {"fake:tts", "chatterbox:tts"}
     assert "| `fake:tts` |" in first.support_matrix_markdown
 
 

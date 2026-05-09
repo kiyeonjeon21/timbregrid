@@ -97,6 +97,7 @@ Works today:
 - route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy;
 - run fake-adapter benchmark suites and write raw JSON output;
 - define benchmark prompt suites for realtime-agent, narration, multilingual, cloning, and dialogue;
+- include manifest-only registry examples for KittenTTS, Chatterbox, and Qwen3-TTS;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
 - run a speech conformance suite with per-case JSON reports against that endpoint;
 - verify Python OpenAI SDK compatibility against the local gateway;
@@ -517,7 +518,7 @@ See [`docs/codex-workflow.md`](docs/codex-workflow.md) for the management model.
 - [x] define `SpeechRequest`, `SpeechResult`, `Capabilities`, and `VoiceInfo`;
 - [x] define benchmark prompt suites: realtime-agent, narration, multilingual, cloning, dialogue;
 - [x] define OpenAI speech conformance cases;
-- [ ] create example manifests for Kokoro, KittenTTS, Chatterbox, Qwen3-TTS (partial: `fake:tts` and `kokoro:82m` exist).
+- [x] create example manifests for Kokoro, KittenTTS, Chatterbox, Qwen3-TTS.
 
 ### Phase 1: Useful OSS Before Runtime
 

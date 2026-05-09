@@ -1,0 +1,33 @@
+schema_version: "0.1"
+id: qwen3-tts:0.6b-base
+name: Qwen3-TTS 12Hz 0.6B Base
+upstream:
+  homepage: https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+  license: apache-2.0
+  weights: https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base
+runtime:
+  kind: python
+  package: qwen-tts
+  acceleration:
+    cpu: false
+    cuda: true
+    metal: false
+capabilities:
+  streaming: true
+  voice_cloning: true
+  multilingual: full
+  long_form: limited
+  style_control: [voice_clone, voice_description]
+  formats: [wav, pcm]
+audio:
+  sample_rate_hz: 24000
+  formats: [wav, pcm]
+voices:
+  builtin: false
+  custom: true
+policy:
+  commercial_use: true
+  requires_voice_consent: true
+notes:
+  - "Manifest-only example for multilingual, streaming, and voice-cloning TTS."
+  - "Base checkpoint supports rapid cloning from user-provided reference audio."

@@ -61,12 +61,15 @@ def test_bench_cli_lists_available_suites_for_unknown_suite(tmp_path: Path) -> N
     assert "narration" in result.stderr
 
 
-def test_models_list_cli_includes_fake_and_kokoro() -> None:
+def test_models_list_cli_includes_known_models() -> None:
     result = CliRunner().invoke(app, ["models", "list"])
 
     assert result.exit_code == 0
     assert "fake:tts" in result.stdout
     assert "kokoro:82m" in result.stdout
+    assert "kitten-tts:nano-0.8" in result.stdout
+    assert "chatterbox:tts" in result.stdout
+    assert "qwen3-tts:0.6b-base" in result.stdout
 
 
 def test_models_inspect_cli_writes_json() -> None:
@@ -77,6 +80,16 @@ def test_models_inspect_cli_writes_json() -> None:
     assert body["id"] == "kokoro:82m"
     assert body["executable"] is True
     assert body["requires_extra"] == "kokoro"
+
+
+def test_models_inspect_cli_writes_manifest_only_json() -> None:
+    result = CliRunner().invoke(app, ["models", "inspect", "chatterbox:tts"])
+
+    assert result.exit_code == 0
+    body = json.loads(result.stdout)
+    assert body["id"] == "chatterbox:tts"
+    assert body["executable"] is False
+    assert body["status"] == "manifest-only"
 
 
 def test_registry_build_cli_writes_artifacts(tmp_path: Path) -> None:
@@ -97,7 +110,7 @@ def test_registry_build_cli_writes_artifacts(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     body = json.loads(index.read_text(encoding="utf-8"))
-    assert body["model_count"] == 2
+    assert body["model_count"] == 5
     assert "`fake:tts`" in matrix.read_text(encoding="utf-8")
 
 

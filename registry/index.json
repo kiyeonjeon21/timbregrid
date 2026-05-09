@@ -1,6 +1,64 @@
 {
-  "model_count": 2,
+  "model_count": 5,
   "models": [
+    {
+      "audio": {
+        "formats": [
+          "wav",
+          "pcm"
+        ],
+        "sample_rate_hz": 24000
+      },
+      "available": false,
+      "capabilities": {
+        "formats": [
+          "wav",
+          "pcm"
+        ],
+        "long_form": "limited",
+        "multilingual": "full",
+        "streaming": false,
+        "style_control": [
+          "exaggeration",
+          "cfg_weight",
+          "paralinguistic_tags"
+        ],
+        "voice_cloning": true
+      },
+      "executable": false,
+      "id": "chatterbox:tts",
+      "manifest_path": "manifests/chatterbox.yaml",
+      "name": "Chatterbox TTS",
+      "notes": [
+        "Manifest-only example for expressive and cloning-oriented TTS.",
+        "Chatterbox outputs include Resemble AI PerTh watermarking in official examples."
+      ],
+      "policy": {
+        "commercial_use": true,
+        "requires_voice_consent": true
+      },
+      "requires_extra": null,
+      "runtime": {
+        "acceleration": {
+          "cpu": false,
+          "cuda": true,
+          "metal": false
+        },
+        "kind": "python",
+        "package": "chatterbox-tts"
+      },
+      "schema_version": "0.1",
+      "status": "manifest-only",
+      "upstream": {
+        "homepage": "https://github.com/resemble-ai/chatterbox",
+        "license": "mit",
+        "weights": "https://huggingface.co/ResembleAI/chatterbox"
+      },
+      "voices": {
+        "builtin": false,
+        "custom": true
+      }
+    },
     {
       "audio": {
         "formats": [
@@ -71,6 +129,60 @@
           "pcm"
         ],
         "long_form": "limited",
+        "multilingual": "none",
+        "streaming": false,
+        "style_control": "speed",
+        "voice_cloning": false
+      },
+      "executable": false,
+      "id": "kitten-tts:nano-0.8",
+      "manifest_path": "manifests/kitten-tts-nano-0.8.yaml",
+      "name": "KittenTTS Nano 0.8",
+      "notes": [
+        "Manifest-only example for lightweight ONNX/CPU edge TTS.",
+        "Official docs describe 15M to 80M parameter variants and built-in voices."
+      ],
+      "policy": {
+        "commercial_use": true,
+        "requires_voice_consent": false
+      },
+      "requires_extra": null,
+      "runtime": {
+        "acceleration": {
+          "cpu": true,
+          "cuda": false,
+          "metal": false
+        },
+        "kind": "python",
+        "package": "kittentts"
+      },
+      "schema_version": "0.1",
+      "status": "manifest-only",
+      "upstream": {
+        "homepage": "https://github.com/KittenML/KittenTTS",
+        "license": "apache-2.0",
+        "weights": "https://huggingface.co/KittenML/kitten-tts-nano-0.8-fp32"
+      },
+      "voices": {
+        "builtin": true,
+        "custom": false
+      }
+    },
+    {
+      "audio": {
+        "formats": [
+          "wav",
+          "pcm"
+        ],
+        "sample_rate_hz": 24000
+      },
+      "available": false,
+      "capabilities": {
+        "formats": [
+          "wav",
+          "pcm"
+        ],
+        "long_form": "limited",
         "multilingual": "limited",
         "streaming": false,
         "style_control": "speed",
@@ -108,6 +220,63 @@
       "voices": {
         "builtin": true,
         "custom": false
+      }
+    },
+    {
+      "audio": {
+        "formats": [
+          "wav",
+          "pcm"
+        ],
+        "sample_rate_hz": 24000
+      },
+      "available": false,
+      "capabilities": {
+        "formats": [
+          "wav",
+          "pcm"
+        ],
+        "long_form": "limited",
+        "multilingual": "full",
+        "streaming": true,
+        "style_control": [
+          "voice_clone",
+          "voice_description"
+        ],
+        "voice_cloning": true
+      },
+      "executable": false,
+      "id": "qwen3-tts:0.6b-base",
+      "manifest_path": "manifests/qwen3-tts-0.6b-base.yaml",
+      "name": "Qwen3-TTS 12Hz 0.6B Base",
+      "notes": [
+        "Manifest-only example for multilingual, streaming, and voice-cloning TTS.",
+        "Base checkpoint supports rapid cloning from user-provided reference audio."
+      ],
+      "policy": {
+        "commercial_use": true,
+        "requires_voice_consent": true
+      },
+      "requires_extra": null,
+      "runtime": {
+        "acceleration": {
+          "cpu": false,
+          "cuda": true,
+          "metal": false
+        },
+        "kind": "python",
+        "package": "qwen-tts"
+      },
+      "schema_version": "0.1",
+      "status": "manifest-only",
+      "upstream": {
+        "homepage": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base",
+        "license": "apache-2.0",
+        "weights": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base"
+      },
+      "voices": {
+        "builtin": false,
+        "custom": true
       }
     }
   ],

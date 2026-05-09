@@ -64,6 +64,27 @@ _ENTRIES = {
         requires_extra="kokoro",
         adapter_factory=lambda: _KOKORO_ADAPTER,
     ),
+    "kitten-tts:nano-0.8": ModelEntry(
+        id="kitten-tts:nano-0.8",
+        name="KittenTTS Nano 0.8",
+        manifest_path=str(_ROOT / "manifests" / "kitten-tts-nano-0.8.yaml"),
+        executable=False,
+        requires_extra=None,
+    ),
+    "chatterbox:tts": ModelEntry(
+        id="chatterbox:tts",
+        name="Chatterbox TTS",
+        manifest_path=str(_ROOT / "manifests" / "chatterbox.yaml"),
+        executable=False,
+        requires_extra=None,
+    ),
+    "qwen3-tts:0.6b-base": ModelEntry(
+        id="qwen3-tts:0.6b-base",
+        name="Qwen3-TTS 12Hz 0.6B Base",
+        manifest_path=str(_ROOT / "manifests" / "qwen3-tts-0.6b-base.yaml"),
+        executable=False,
+        requires_extra=None,
+    ),
 }
 
 

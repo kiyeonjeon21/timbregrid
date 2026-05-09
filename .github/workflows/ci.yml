@@ -29,8 +29,9 @@ jobs:
 
       - name: Validate manifests
         run: |
-          uv run timbregrid manifest validate manifests/fake-tts.yaml
-          uv run timbregrid manifest validate manifests/kokoro-82m.yaml
+          for manifest in manifests/*.yaml; do
+            uv run timbregrid manifest validate "$manifest"
+          done
 
       - name: Check registry artifacts
         run: uv run timbregrid registry build --check

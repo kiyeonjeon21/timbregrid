@@ -90,9 +90,12 @@ def test_auto_returns_no_route_for_cloning(monkeypatch) -> None:
         resolve_route(_request(purpose="cloning"))
 
     assert "No route found" in str(exc_info.value)
-    assert {candidate.model for candidate in exc_info.value.skipped_candidates} == {
+    skipped_models = {candidate.model for candidate in exc_info.value.skipped_candidates}
+    assert skipped_models >= {
         "fake:tts",
         "kokoro:82m",
+        "chatterbox:tts",
+        "qwen3-tts:0.6b-base",
     }
 
 
