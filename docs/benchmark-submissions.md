@@ -6,6 +6,8 @@ Benchmark submissions should be raw JSON files produced by:
 uv run timbregrid bench <model-id> --suite <suite-id> --output <file>.json
 ```
 
+Deterministic fake examples live in `benchmarks/examples`. Real hardware submissions live in `benchmarks/submissions` and should be treated as raw evidence from a specific contributor environment, not as broad performance guarantees.
+
 Use `--hardware-profile <profile>` when the result should be compared for routing or documentation. Common profiles are `apple-silicon`, `cpu`, `cuda`, and `generic-ci`.
 
 Before opening a PR, validate each file:

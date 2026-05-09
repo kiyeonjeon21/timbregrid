@@ -36,10 +36,13 @@ jobs:
       - name: Check registry artifacts
         run: uv run timbregrid registry build --check
 
-      - name: Validate benchmark examples
+      - name: Validate benchmark artifacts
         run: |
-          for benchmark in benchmarks/examples/*.json; do
-            uv run timbregrid bench validate "$benchmark"
+          for benchmark_dir in benchmarks/examples benchmarks/submissions; do
+            for benchmark in "$benchmark_dir"/*.json; do
+              test -e "$benchmark" || continue
+              uv run timbregrid bench validate "$benchmark"
+            done
           done
 
       - name: Run benchmark smoke test

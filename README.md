@@ -51,7 +51,7 @@ The fake adapter generates deterministic local audio bytes without downloading m
 - Validate benchmark JSON examples and submissions for model ids, suites, hardware profiles, prompts, and aggregate metrics.
 - Run basic OpenAI-compatible speech conformance checks.
 - Serve `POST /v1/audio/speech` for `fake:tts`.
-- Verify Python OpenAI SDK compatibility against the local gateway.
+- Verify Python OpenAI SDK compatibility and run a direct SDK example against the local gateway.
 - Route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy.
 - Run `kokoro:82m` when optional Kokoro dependencies and `espeak-ng` are installed.
 
@@ -61,7 +61,7 @@ Not included yet:
 - SQLite voice metadata storage or provenance enforcement.
 - Hosted registry publishing.
 - SSE audio streaming.
-- WebUI or third-party integration examples.
+- Open WebUI, Pipecat, or LiveKit integration examples.
 
 ## Model Registry
 
@@ -107,9 +107,28 @@ uv run timbregrid bench validate /tmp/fake.json
 
 The checked-in benchmark under [`benchmarks/examples`](benchmarks/examples) is deterministic fake data. It documents the JSON format and supports tests; it is not a hardware performance claim.
 
+Raw real-hardware submissions live under [`benchmarks/submissions`](benchmarks/submissions). The checked-in Kokoro Apple Silicon artifact is one contributor machine run, not a general performance guarantee.
+
 Benchmark validation recomputes run counts, failures, failure rate, average latency metrics, peak memory, and suite prompts before accepting a submission.
 
 See [`docs/benchmarking.md`](docs/benchmarking.md) and [`docs/benchmark-submissions.md`](docs/benchmark-submissions.md).
+
+## Examples
+
+Run the OpenAI Python SDK example against a local gateway:
+
+```bash
+uv run python examples/openai_sdk_speech.py
+```
+
+For Kokoro:
+
+```bash
+TIMBREGRID_MODEL=kokoro:82m \
+TIMBREGRID_VOICE=af_heart \
+TIMBREGRID_OUTPUT=/tmp/kokoro-sdk.wav \
+uv run python examples/openai_sdk_speech.py
+```
 
 ## Conformance Tests
 
@@ -188,14 +207,14 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase | Status | Focus |
 |---|---|---|
 | Phase 0: Spec-first planning | complete | Manifest schema, speech models, benchmark suites, conformance cases, example manifests. |
-| Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, and submission validation work; real hardware benchmark artifacts still need contributors. |
+| Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and one Kokoro Apple Silicon artifact exist; broader hardware coverage still needs contributors. |
 | Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro adapter, Docker smoke path, and benchmark-aware routing work; KittenTTS and expressive/cloning adapters are next. |
 | Phase 3: Community registry | partial | Local registry, generated support matrix, PR/issue templates, and CI checks exist; hosted registry, link/checksum validation, and install smoke coverage remain. |
 | Phase 4: Voice governance and integrations | not started | Voice records, consent/provenance enforcement, `/v1/audio/voices`, and integration examples remain. |
 
 Near-term next work:
 
-- Publish real raw benchmark examples for Apple Silicon, CPU, and CUDA where available.
+- Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Implement a KittenTTS adapter for edge/CPU use.
 - Add local voice records, consent metadata, and `/v1/audio/voices`.
 
@@ -209,6 +228,7 @@ Before opening a PR, run:
 uv run pytest
 uv run timbregrid registry build --check
 for benchmark in benchmarks/examples/*.json; do uv run timbregrid bench validate "$benchmark"; done
+for benchmark in benchmarks/submissions/*.json; do uv run timbregrid bench validate "$benchmark"; done
 ```
 
 ## Security

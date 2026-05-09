@@ -23,8 +23,8 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add `timbregrid conformance` for existing OpenAI-compatible TTS servers.
 - [x] Document how other servers can use the benchmark and conformance tests.
 - [ ] Publish real raw benchmark JSON examples for Apple Silicon, CPU, and CUDA where available.
-  - Partial: deterministic fake benchmark examples and validation paths exist.
-  - Completion requires raw benchmark JSON produced on real hardware, not fabricated or hand-edited summaries.
+  - Partial: deterministic fake benchmark examples, validation paths, and one Kokoro Apple Silicon submission exist.
+  - Completion requires broader raw benchmark JSON produced on real hardware, not fabricated or hand-edited summaries.
 
 ## Phase 2: Reference Gateway MVP
 
@@ -54,7 +54,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [ ] Add consent metadata and provenance fields for custom/cloned voices.
 - [ ] Add `GET /v1/audio/voices`.
 - [ ] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
-- [ ] Add direct OpenAI SDK usage examples beyond compatibility tests.
+- [x] Add a direct OpenAI SDK usage example beyond compatibility tests.
 - [ ] Add integration examples for Open WebUI, Pipecat, and LiveKit.
 - [ ] Add a WebUI for A/B tests, latency views, and voice preview only after the CLI/gateway contracts stabilize.
 
@@ -89,10 +89,10 @@ Success means:
 
 ## Next Milestones
 
-1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro and future adapters on Apple Silicon, CPU, and CUDA where contributors can provide real runs.
+1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
 2. **KittenTTS edge adapter**: add the first lightweight CPU-focused adapter without adding heavy dependencies to the default install path.
 3. **Voice metadata foundation**: add local voice records, consent metadata, and `/v1/audio/voices` before treating cloning adapters as a mainline feature.
-4. **Integration examples**: add direct OpenAI SDK usage first, then Open WebUI, Pipecat, and LiveKit docs or examples.
+4. **Integration examples**: add Open WebUI, Pipecat, and LiveKit docs or examples after the direct OpenAI SDK example.
 
 ## Technical Choices
 

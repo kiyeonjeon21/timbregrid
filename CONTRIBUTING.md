@@ -29,6 +29,7 @@ Run the checks that match your change:
 uv run pytest
 uv run timbregrid registry build --check
 for benchmark in benchmarks/examples/*.json; do uv run timbregrid bench validate "$benchmark"; done
+for benchmark in benchmarks/submissions/*.json; do uv run timbregrid bench validate "$benchmark"; done
 ```
 
 For manifest changes:

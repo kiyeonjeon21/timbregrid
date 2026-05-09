@@ -1,0 +1,61 @@
+{
+  "created_at": "2026-05-09T16:24:46.741498+00:00",
+  "hardware": {
+    "machine": "arm64",
+    "os": "macOS-26.3.1-arm64-arm-64bit",
+    "processor": "arm",
+    "profile": "apple-silicon",
+    "python": "3.12.13"
+  },
+  "metrics": {
+    "failure_rate": 0.0,
+    "failures": 0,
+    "memory_peak_bytes": 3898797,
+    "output_duration_ms": 3291.6666666666665,
+    "real_time_factor": 0.19155600486594615,
+    "runs": 3,
+    "time_to_first_audio_ms": 632.6541666670286,
+    "total_generation_ms": 632.7552776668502
+  },
+  "model": "kokoro:82m",
+  "runs": [
+    {
+      "error": null,
+      "format": "wav",
+      "memory_peak_bytes": 3467819,
+      "ok": true,
+      "output_duration_ms": 3450.0,
+      "prompt": "Hello from a local open-source TTS runtime.",
+      "real_time_factor": 0.2510519686958118,
+      "sample_rate_hz": 24000,
+      "time_to_first_audio_ms": 866.0108750009385,
+      "total_generation_ms": 866.1292920005508
+    },
+    {
+      "error": null,
+      "format": "wav",
+      "memory_peak_bytes": 2388319,
+      "ok": true,
+      "output_duration_ms": 2425.0,
+      "prompt": "Your meeting starts in five minutes.",
+      "real_time_factor": 0.16655723340197265,
+      "sample_rate_hz": 24000,
+      "time_to_first_audio_ms": 403.8099579993286,
+      "total_generation_ms": 403.90129099978367
+    },
+    {
+      "error": null,
+      "format": "wav",
+      "memory_peak_bytes": 3898797,
+      "ok": true,
+      "output_duration_ms": 4000.0,
+      "prompt": "I can help compare latency, voice support, and licensing.",
+      "real_time_factor": 0.15705881250005405,
+      "sample_rate_hz": 24000,
+      "time_to_first_audio_ms": 628.1416670008184,
+      "total_generation_ms": 628.2352500002162
+    }
+  ],
+  "schema_version": "0.1",
+  "suite": "realtime-agent"
+}
