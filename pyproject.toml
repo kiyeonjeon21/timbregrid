@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Open compatibility and evaluation layer for OSS TTS."
 readme = "README.md"
 requires-python = ">=3.11"
+license = { file = "LICENSE" }
 dependencies = [
   "fastapi>=0.115.0",
   "httpx>=0.27.0",

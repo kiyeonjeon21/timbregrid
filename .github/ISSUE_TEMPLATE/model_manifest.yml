@@ -1,0 +1,41 @@
+name: Model manifest request
+description: Request or discuss a TimbreGrid model manifest.
+title: "manifest: "
+labels: ["manifest"]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model name
+      placeholder: "Example: Kokoro 82M"
+    validations:
+      required: true
+  - type: input
+    id: upstream
+    attributes:
+      label: Upstream URL
+      placeholder: "https://..."
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: License
+      placeholder: "Example: apache-2.0"
+    validations:
+      required: true
+  - type: textarea
+    id: runtime
+    attributes:
+      label: Runtime details
+      description: Include package name, install method, supported hardware, and known dependency constraints.
+  - type: textarea
+    id: capabilities
+    attributes:
+      label: Capabilities
+      description: Include audio formats, sample rate, voices, multilingual, long-form, streaming, style control, and cloning support.
+  - type: textarea
+    id: policy
+    attributes:
+      label: Policy and safety notes
+      description: Include commercial-use status, consent requirements, watermarking, and caveats.

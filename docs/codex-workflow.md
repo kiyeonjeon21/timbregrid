@@ -25,7 +25,7 @@ This repository keeps Codex customization in project scope so future sessions ca
 
 When continuing work from README:
 
-1. Read `Current MVP Scope`, `Development Roadmap`, `First Milestone`, and `Next Milestones`.
+1. Read `What Works Today`, `Roadmap`, and the relevant docs linked from README.
 2. Pick the first relevant unfinished item.
 3. Implement the smallest coherent slice.
 4. Run validation from the validation skill.
@@ -45,3 +45,4 @@ Use project custom agents only when the user asks for subagents or parallel agen
 - Add or edit a skill when a repeatable workflow needs more detail than belongs in `AGENTS.md`.
 - Add hooks only for lightweight reminders or context injection.
 - Do not commit secrets, personal tokens, local auth files, or user-specific `~/.codex` state.
+- Keep public README user-focused; do not add local notes or Codex workflow details there.

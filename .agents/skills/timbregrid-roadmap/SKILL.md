@@ -15,7 +15,7 @@ Use this skill when the task mentions roadmap, phase, milestone, README, remaini
 
 ## Steps
 
-1. Read `README.md` sections `Current MVP Scope`, `Development Roadmap`, `First Milestone`, and `Next Milestones`.
+1. Read `README.md` sections `What Works Today` and `Roadmap`, plus the relevant docs linked from README.
 2. Identify the first unfinished roadmap item that matches the user's request. Prefer high-value project infrastructure over adding many model adapters early.
 3. Classify the item as one of:
    - `complete`: implementation and validation are present;
@@ -33,3 +33,4 @@ Use this skill when the task mentions roadmap, phase, milestone, README, remaini
 - Do not mark a model adapter, registry path, benchmark path, or provenance path complete from docs-only work.
 - If generated files need updates, run the generator rather than hand-editing generated output.
 - If the selected item changes project direction, document that in README before claiming completion.
+- Keep public README concise. Move detailed contribution, security, benchmark, and conformance guidance into the dedicated docs.

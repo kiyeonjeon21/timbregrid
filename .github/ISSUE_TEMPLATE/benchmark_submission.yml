@@ -1,0 +1,54 @@
+name: Benchmark submission
+description: Share or discuss a benchmark result before opening a PR.
+title: "benchmark: "
+labels: ["benchmark"]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model id
+      placeholder: "Example: fake:tts"
+    validations:
+      required: true
+  - type: input
+    id: suite
+    attributes:
+      label: Benchmark suite
+      placeholder: "Example: realtime-agent"
+    validations:
+      required: true
+  - type: input
+    id: hardware_profile
+    attributes:
+      label: Hardware profile
+      placeholder: "Example: apple-silicon, cpu, cuda, generic-ci"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command used
+      description: Paste the exact benchmark command.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Python, hardware, driver/runtime versions, optional extras, and model package versions.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: Paste the `uv run timbregrid bench validate <file>.json` result.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Do not attach private audio, cloned voice samples, consent records, or private datasets.

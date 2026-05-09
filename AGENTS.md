@@ -3,7 +3,7 @@
 ## Project Source Of Truth
 
 - Treat `README.md` as the source of truth for product scope, status, and roadmap state.
-- Before planning or implementing roadmap work, read `README.md` sections `Current MVP Scope`, `Development Roadmap`, `First Milestone`, and `Next Milestones`.
+- Before planning or implementing roadmap work, read `README.md` sections `What Works Today`, `Roadmap`, and the relevant docs linked from README.
 - When a roadmap checkbox or partial milestone becomes true, update `README.md` in the same change.
 - Keep README status conservative: mark an item complete only after the implementation and relevant validation have both landed.
 
@@ -14,6 +14,8 @@
 - Keep changes small and aligned with existing `src/timbregrid` patterns.
 - Do not manually edit generated registry artifacts. Regenerate them with `uv run timbregrid registry build` and verify with `uv run timbregrid registry build --check`.
 - Do not add heavyweight model dependencies to the default install path. Keep real model adapters optional.
+- Keep public-facing docs concise and user-focused. Do not add private notes, local filesystem paths, or Codex workflow details to `README.md`.
+- Put contribution guidance in `CONTRIBUTING.md`, security guidance in `SECURITY.md`, benchmark details in `docs/benchmarking.md` or `docs/benchmark-submissions.md`, and conformance details in `docs/conformance.md`.
 
 ## Validation
 
@@ -22,7 +24,14 @@
 - Routing or benchmark changes: include routing and benchmark tests, or run the full test suite if the impact is shared.
 - Gateway, conformance, or SDK compatibility changes: run the relevant gateway/conformance/OpenAI SDK tests.
 - Docker changes: run a Docker build or compose smoke test when feasible.
+- Public metadata or packaging changes: run `uv build` when practical.
 - If validation cannot be run, state the exact reason and the residual risk.
+
+## Public Repository Hygiene
+
+- Do not commit secrets, API keys, private voice samples, consent records, private datasets, or user-specific local paths.
+- Keep `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/PULL_REQUEST_TEMPLATE.md`, and `.github/ISSUE_TEMPLATE/*` aligned with public workflows.
+- Keep model and benchmark claims conservative. Do not publish hardware performance claims without raw benchmark JSON evidence.
 
 ## Codex Project Setup
 
