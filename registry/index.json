@@ -1,0 +1,117 @@
+{
+  "model_count": 2,
+  "models": [
+    {
+      "audio": {
+        "formats": [
+          "mp3",
+          "wav",
+          "pcm"
+        ],
+        "sample_rate_hz": 24000
+      },
+      "available": true,
+      "capabilities": {
+        "formats": [
+          "mp3",
+          "wav",
+          "pcm"
+        ],
+        "long_form": "limited",
+        "multilingual": "limited",
+        "streaming": false,
+        "style_control": "speed",
+        "voice_cloning": false
+      },
+      "executable": true,
+      "id": "fake:tts",
+      "manifest_path": "manifests/fake-tts.yaml",
+      "name": "TimbreGrid Fake TTS",
+      "notes": [
+        "Deterministic test adapter for conformance and benchmark development."
+      ],
+      "policy": {
+        "commercial_use": true,
+        "requires_voice_consent": false
+      },
+      "requires_extra": null,
+      "runtime": {
+        "acceleration": {
+          "cpu": true,
+          "cuda": false,
+          "metal": false
+        },
+        "kind": "python",
+        "package": "timbregrid"
+      },
+      "schema_version": "0.1",
+      "status": "available",
+      "upstream": {
+        "homepage": "https://github.com/kiyeonjeon21/timbregrid",
+        "license": "mit",
+        "weights": "none"
+      },
+      "voices": {
+        "builtin": true,
+        "custom": false
+      }
+    },
+    {
+      "audio": {
+        "formats": [
+          "wav",
+          "mp3",
+          "pcm"
+        ],
+        "sample_rate_hz": 24000
+      },
+      "available": false,
+      "capabilities": {
+        "formats": [
+          "wav",
+          "mp3",
+          "pcm"
+        ],
+        "long_form": "limited",
+        "multilingual": "limited",
+        "streaming": false,
+        "style_control": "speed",
+        "voice_cloning": false
+      },
+      "executable": true,
+      "id": "kokoro:82m",
+      "manifest_path": "manifests/kokoro-82m.yaml",
+      "name": "Kokoro 82M",
+      "notes": [
+        "Good baseline for low-latency local TTS.",
+        "Executable through the optional timbregrid[kokoro] adapter."
+      ],
+      "policy": {
+        "commercial_use": true,
+        "requires_voice_consent": false
+      },
+      "requires_extra": "kokoro",
+      "runtime": {
+        "acceleration": {
+          "cpu": true,
+          "cuda": true,
+          "metal": "optional"
+        },
+        "kind": "python",
+        "package": "kokoro"
+      },
+      "schema_version": "0.1",
+      "status": "requires optional dependency: kokoro",
+      "upstream": {
+        "homepage": "https://huggingface.co/hexgrad/Kokoro-82M",
+        "license": "apache-2.0",
+        "weights": "open-weight"
+      },
+      "voices": {
+        "builtin": true,
+        "custom": false
+      }
+    }
+  ],
+  "schema_version": "0.1"
+}

@@ -49,6 +49,54 @@ def test_models_inspect_cli_writes_json() -> None:
     assert body["requires_extra"] == "kokoro"
 
 
+def test_registry_build_cli_writes_artifacts(tmp_path: Path) -> None:
+    index = tmp_path / "registry" / "index.json"
+    matrix = tmp_path / "docs" / "support-matrix.md"
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "registry",
+            "build",
+            "--index",
+            str(index),
+            "--matrix",
+            str(matrix),
+        ],
+    )
+
+    assert result.exit_code == 0
+    body = json.loads(index.read_text(encoding="utf-8"))
+    assert body["model_count"] == 2
+    assert "`fake:tts`" in matrix.read_text(encoding="utf-8")
+
+
+def test_registry_build_check_cli_detects_stale_artifacts(tmp_path: Path) -> None:
+    index = tmp_path / "registry" / "index.json"
+    matrix = tmp_path / "docs" / "support-matrix.md"
+
+    result = CliRunner().invoke(
+        app,
+        ["registry", "build", "--index", str(index), "--matrix", str(matrix)],
+    )
+    assert result.exit_code == 0
+
+    result = CliRunner().invoke(
+        app,
+        ["registry", "build", "--check", "--index", str(index), "--matrix", str(matrix)],
+    )
+    assert result.exit_code == 0
+    assert "OK registry artifacts are current" in result.stdout
+
+    matrix.write_text("stale\n", encoding="utf-8")
+    result = CliRunner().invoke(
+        app,
+        ["registry", "build", "--check", "--index", str(index), "--matrix", str(matrix)],
+    )
+    assert result.exit_code == 1
+    assert "Registry artifacts are stale" in result.stderr
+
+
 def test_resolve_serve_config_defaults(monkeypatch) -> None:
     monkeypatch.delenv("TIMBREGRID_MODEL", raising=False)
     monkeypatch.delenv("TIMBREGRID_HOST", raising=False)

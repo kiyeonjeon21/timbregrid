@@ -32,6 +32,9 @@ jobs:
           uv run timbregrid manifest validate manifests/fake-tts.yaml
           uv run timbregrid manifest validate manifests/kokoro-82m.yaml
 
+      - name: Check registry artifacts
+        run: uv run timbregrid registry build --check
+
       - name: Run benchmark smoke test
         run: uv run timbregrid bench fake:tts --suite realtime-agent --output /tmp/timbregrid-bench.json
 

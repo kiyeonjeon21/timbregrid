@@ -3,7 +3,7 @@
 > The open compatibility grid for synthetic speech.
 > Manifests, benchmarks, conformance tests, routing policy, provenance, and a reference OpenAI-compatible gateway for OSS TTS.
 
-**Status**: spec + optional Kokoro adapter MVP implementation
+**Status**: spec + static registry + optional Kokoro adapter MVP implementation
 **Research snapshot**: 2026-05-09  
 **License (planned)**: MIT for TimbreGrid core; upstream model licenses are preserved per model manifest.
 
@@ -38,6 +38,16 @@ uv run timbregrid conformance http://localhost:8889/v1 \
   --output /tmp/timbregrid-conformance.json
 ```
 
+Generate the static registry index and support matrix from manifests:
+
+```bash
+uv run timbregrid registry build
+uv run timbregrid registry build --check
+```
+
+- Registry index: [`registry/index.json`](registry/index.json)
+- Support matrix: [`docs/support-matrix.md`](docs/support-matrix.md)
+
 ### Docker Quickstart
 
 Run the fake gateway container:
@@ -68,6 +78,7 @@ The Docker image is intentionally a lightweight `fake:tts` gateway. It does not 
 Works today:
 
 - validate TimbreGrid model manifests from YAML;
+- generate a static model registry index and support matrix from manifests;
 - run a fake-adapter benchmark suite and write raw JSON output;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
 - run a speech conformance suite with per-case JSON reports against that endpoint;
@@ -77,7 +88,7 @@ Works today:
 Not included yet:
 
 - KittenTTS, Chatterbox, or Qwen3-TTS inference adapters;
-- SQLite metadata storage, hosted registry, or voice provenance storage;
+- SQLite metadata storage, hosted registry publishing, or voice provenance storage;
 - SSE audio streaming or long-form dialogue routing.
 
 `manifests/kokoro-82m.yaml` is executable only when optional Kokoro dependencies are installed.
@@ -495,10 +506,10 @@ Initial implementation should prefer **FastAPI** because the model wrappers and 
 
 ### Phase 3: Community Registry
 
-- [ ] hosted static registry index;
+- [ ] hosted static registry index (partial: local `registry/index.json` is generated from manifests);
 - [ ] manifest PR template;
-- [ ] CI validation for manifest schema, links, checksums, licenses, and install smoke tests (partial: tests, manifest validation, and fake benchmark smoke run in CI);
-- [ ] model support matrix generated from manifests;
+- [ ] CI validation for manifest schema, links, checksums, licenses, and install smoke tests (partial: tests, manifest validation, registry drift check, and fake benchmark smoke run in CI);
+- [x] model support matrix generated from manifests;
 - [ ] benchmark result submission format.
 
 ### Phase 4: Voice Governance And Integrations
@@ -536,9 +547,9 @@ Success means:
 
 ## Next Milestones
 
-1. **Registry index + support matrix**: generate a static model index and support matrix from manifests.
-2. **Routing policy**: make `model="auto"` choose adapters by purpose, hardware, license policy, and benchmark data.
-3. **Voice provenance**: add local voice records, consent metadata, and `/v1/audio/voices`.
+1. **Routing policy**: make `model="auto"` choose adapters by purpose, hardware, license policy, and benchmark data.
+2. **Voice provenance**: add local voice records, consent metadata, and `/v1/audio/voices`.
+3. **Manifest contribution path**: add a PR template and broader manifest validation for external model submissions.
 
 ## Technical Choices
 

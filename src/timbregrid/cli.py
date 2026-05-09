@@ -12,11 +12,17 @@ from timbregrid.conformance import run_conformance, write_conformance_report
 from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
 from timbregrid.registry import get_model_entry, list_models
+from timbregrid.registry_index import (
+    RegistryIndexError,
+    stale_registry_artifacts,
+    write_registry_artifacts,
+)
 
 
 app = typer.Typer(help="TimbreGrid compatibility and evaluation tools.")
 manifest_app = typer.Typer(help="Validate and inspect model manifests.")
 models_app = typer.Typer(help="List and inspect known TTS models.")
+registry_app = typer.Typer(help="Build static registry artifacts.")
 
 
 @manifest_app.command("validate")
@@ -69,6 +75,34 @@ def inspect_model(model: Annotated[str, typer.Argument()]) -> None:
         typer.echo(f"Unknown model: {model}", err=True)
         raise typer.Exit(1) from exc
     typer.echo(json.dumps(entry.to_dict(), indent=2, sort_keys=True))
+
+
+@registry_app.command("build")
+def build_registry(
+    manifest_dir: Annotated[Path, typer.Option("--manifest-dir")] = Path("manifests"),
+    index: Annotated[Path, typer.Option("--index")] = Path("registry/index.json"),
+    matrix: Annotated[Path, typer.Option("--matrix")] = Path("docs/support-matrix.md"),
+    check: Annotated[bool, typer.Option("--check")] = False,
+) -> None:
+    try:
+        if check:
+            stale = stale_registry_artifacts(manifest_dir, index, matrix)
+            if stale:
+                typer.echo(
+                    "Registry artifacts are stale: " + ", ".join(str(path) for path in stale),
+                    err=True,
+                )
+                raise typer.Exit(1)
+            typer.echo("OK registry artifacts are current")
+            return
+
+        write_registry_artifacts(manifest_dir, index, matrix)
+    except RegistryIndexError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Wrote {index}")
+    typer.echo(f"Wrote {matrix}")
 
 
 @app.command()
@@ -150,6 +184,7 @@ def _env_port() -> int:
 
 app.add_typer(manifest_app, name="manifest")
 app.add_typer(models_app, name="models")
+app.add_typer(registry_app, name="registry")
 
 
 if __name__ == "__main__":
