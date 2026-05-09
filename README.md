@@ -126,7 +126,7 @@ Not included yet:
 - Chatterbox or Qwen3-TTS inference adapters.
 - SQLite voice metadata storage or custom voice synthesis.
 - SSE audio streaming.
-- Pipecat or LiveKit integration examples; Open WebUI is currently a docs-only TTS guide.
+- Pipecat or LiveKit integration examples; Open WebUI currently has a TTS backend guide, not a UI built by TimbreGrid.
 
 ## Model Registry
 
@@ -247,6 +247,8 @@ uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8000/v1 \
   --output demo-assets/speaches-doctor.json
 ```
 
+Open [`examples/doctor-report-viewer.html`](examples/doctor-report-viewer.html) in a browser to inspect a local `doctor.json` report with readiness cards and failed-case filtering. The viewer is a static local file and does not upload reports.
+
 Run conformance checks against any OpenAI-compatible TTS server:
 
 ```bash
@@ -329,11 +331,12 @@ See [`docs/kitten-tts.md`](docs/kitten-tts.md) for the packaging caveat behind t
 
 TimbreGrid can be used as a local OpenAI-compatible TTS backend for tools that call `/v1/audio/speech`.
 
-- [Open WebUI integration guide](docs/integrations/open-webui.md)
-- [Open WebUI + TimbreGrid compose example](examples/open-webui-compose.yml)
+- [Open WebUI TTS backend guide](docs/integrations/open-webui.md)
+- [Open WebUI TTS backend compose example](examples/open-webui-compose.yml)
 - [External server proof with Speaches](docs/external-server-proof.md)
+- [Local doctor report viewer](examples/doctor-report-viewer.html)
 
-Integration examples are intentionally narrow until streaming and broader gateway compatibility stabilize.
+Integration examples are intentionally narrow until streaming and broader gateway compatibility stabilize. Open WebUI is a separate frontend/server app; TimbreGrid only provides the OpenAI-compatible TTS backend that Open WebUI calls.
 
 ## Release Status
 
@@ -393,12 +396,13 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and Kokoro/KittenTTS Apple Silicon artifacts exist; broader hardware coverage still needs contributors. |
 | Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro and KittenTTS adapters, Docker smoke path, and benchmark-aware routing work; expressive/cloning adapters are next. |
 | Phase 3: Community registry | partial | Local registry, generated support matrix, release assets, hosted latest registry, PR/issue templates, deterministic registry audit, scheduled URL audit, and CI checks exist; checksum validation and broader install smoke coverage remain. |
-| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, synthesis-time voice checks, a real-audio demo guide, and Open WebUI docs exist; Pipecat and LiveKit examples remain. |
+| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, synthesis-time voice checks, a real-audio demo guide, doctor report viewer, and Open WebUI TTS backend docs exist; Pipecat and LiveKit examples remain. |
 
 Near-term next work:
 
 - Capture real external-server doctor reports, starting with Speaches and then LocalAI where feasible.
-- Use `timbregrid doctor` reports to harden integration examples (Open WebUI guide and compose example wired to `doctor` preflight; Pipecat and LiveKit pending).
+- Use `timbregrid doctor` reports to harden TTS backend integration examples (Open WebUI TTS backend guide and compose example wired to `doctor` preflight; Pipecat and LiveKit pending).
+- Capture a real viewer-backed doctor report walkthrough after external Speaches or LocalAI runs are available.
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
 - Harden checksum metadata and broader optional install smoke coverage.

@@ -72,6 +72,8 @@ jq '.summary, .integration_readiness, .conformance.cases[] | {name, passed, stat
   demo-assets/speaches-doctor.json
 ```
 
+You can also open [`../examples/doctor-report-viewer.html`](../examples/doctor-report-viewer.html) in a browser and drop `demo-assets/speaches-doctor.json` into it.
+
 ## Use The Report
 
 - `open_webui_tts: ready` means the selected Speaches model, voice, and response format passed TimbreGrid's basic OpenAI-compatible TTS checks.

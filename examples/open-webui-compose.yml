@@ -1,4 +1,7 @@
-# Boots TimbreGrid + Open WebUI together for a one-command integration check.
+# Boots TimbreGrid + the external Open WebUI app together for a one-command
+# TTS backend integration check. Open WebUI provides the UI; TimbreGrid only
+# serves the OpenAI-compatible TTS endpoint configured in Open WebUI's audio
+# settings.
 #
 # Usage:
 #   docker compose -f examples/open-webui-compose.yml up --build

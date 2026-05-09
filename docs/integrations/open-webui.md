@@ -1,8 +1,10 @@
-# Open WebUI Integration
+# Open WebUI TTS Backend Integration
 
 TimbreGrid can act as a local OpenAI-compatible text-to-speech backend for Open WebUI's audio settings.
 
-This guide covers TTS only. TimbreGrid currently provides `/v1/audio/speech`; it does not provide chat completions, speech-to-text, or streaming audio endpoints.
+Open WebUI is the separate frontend/server application. TimbreGrid does not provide or replace the Open WebUI interface; it only serves the TTS API that Open WebUI calls after you configure Open WebUI's audio settings.
+
+This guide covers TTS only. TimbreGrid currently provides `/v1/audio/speech`; it does not provide chat completions, speech-to-text, Open WebUI screens, or streaming audio endpoints.
 
 ## Start TimbreGrid
 

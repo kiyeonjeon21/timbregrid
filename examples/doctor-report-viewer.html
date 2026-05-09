@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TimbreGrid Doctor Report Viewer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --ink: #18202f;
+      --muted: #5e6878;
+      --line: #d9deea;
+      --blue: #2457d6;
+      --green: #0f766e;
+      --green-bg: #e5f5f2;
+      --red: #b42318;
+      --red-bg: #ffebe7;
+      --amber: #946200;
+      --amber-bg: #fff4d6;
+      --shadow: 0 16px 36px rgba(27, 38, 65, 0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 760;
+    }
+
+    .subtitle,
+    .muted {
+      color: var(--muted);
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .dropzone {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      min-height: 94px;
+      padding: 16px;
+      border: 1px dashed #8fa1c4;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .dropzone.dragover {
+      border-color: var(--blue);
+      background: #eef4ff;
+    }
+
+    .file-control {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 260px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      max-width: 260px;
+      color: var(--muted);
+    }
+
+    button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      background: #fdfdfd;
+      color: var(--ink);
+      padding: 0 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button[aria-pressed="true"] {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #eef4ff;
+    }
+
+    .error {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid #f0b4ad;
+      background: var(--red-bg);
+      color: var(--red);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .panel,
+    .metric,
+    .readiness {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      min-height: 108px;
+      padding: 14px;
+    }
+
+    .metric .label,
+    .readiness .label,
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 680;
+      text-transform: uppercase;
+    }
+
+    .metric .value {
+      margin-top: 12px;
+      font-size: 22px;
+      line-height: 1.1;
+      font-weight: 780;
+      word-break: break-word;
+    }
+
+    .metric .subvalue {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .readiness-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .readiness {
+      min-height: 124px;
+      padding: 14px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      margin-top: 10px;
+      padding: 3px 9px;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 720;
+      text-transform: uppercase;
+    }
+
+    .status.ready {
+      color: var(--green);
+      background: var(--green-bg);
+      border-color: #9bd4cc;
+    }
+
+    .status.likely-ready {
+      color: var(--amber);
+      background: var(--amber-bg);
+      border-color: #eccd7a;
+    }
+
+    .status.failed {
+      color: var(--red);
+      background: var(--red-bg);
+      border-color: #f0b4ad;
+    }
+
+    .reason {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.42;
+      word-break: break-word;
+    }
+
+    .panel {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      min-width: 900px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    td.code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+    }
+
+    .case-pass {
+      color: var(--green);
+      font-weight: 720;
+    }
+
+    .case-fail {
+      color: var(--red);
+      font-weight: 720;
+    }
+
+    .empty {
+      padding: 22px 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 840px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 18px;
+      }
+
+      .topbar,
+      .dropzone,
+      .readiness-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .file-control {
+        justify-content: flex-start;
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <div>
+        <h1>TimbreGrid Doctor Report</h1>
+        <p class="subtitle">Open a local <code>doctor.json</code> report. Files stay in this browser session.</p>
+      </div>
+      <div class="muted" id="schema">No report loaded</div>
+    </header>
+
+    <section class="dropzone" id="dropzone">
+      <div>
+        <strong>Drop a doctor report JSON file</strong>
+        <p class="subtitle">Expected schema: TimbreGrid doctor report <code>0.1</code>.</p>
+      </div>
+      <div class="file-control">
+        <input id="file" type="file" accept="application/json,.json">
+        <button id="sample" type="button">Load Sample</button>
+      </div>
+    </section>
+    <div class="error" id="error" role="alert"></div>
+
+    <section class="grid" aria-label="Report summary">
+      <article class="metric">
+        <div class="label">Target</div>
+        <div class="value" id="target">-</div>
+        <div class="subvalue" id="target-sub">-</div>
+      </article>
+      <article class="metric">
+        <div class="label">Model</div>
+        <div class="value" id="model">-</div>
+        <div class="subvalue" id="voice">-</div>
+      </article>
+      <article class="metric">
+        <div class="label">Conformance</div>
+        <div class="value" id="score">-</div>
+        <div class="subvalue" id="failure-rate">-</div>
+      </article>
+      <article class="metric">
+        <div class="label">Created</div>
+        <div class="value" id="created">-</div>
+        <div class="subvalue" id="format">-</div>
+      </article>
+    </section>
+
+    <section class="readiness-grid" id="readiness" aria-label="Integration readiness"></section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Conformance Cases</h2>
+        <button id="failed-only" type="button" aria-pressed="false">Failed Only</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 26%;">Case</th>
+              <th style="width: 11%;">Result</th>
+              <th style="width: 11%;">Status</th>
+              <th style="width: 18%;">Content Type</th>
+              <th style="width: 10%;">Elapsed</th>
+              <th style="width: 24%;">Failure</th>
+            </tr>
+          </thead>
+          <tbody id="cases"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty">No cases loaded.</div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      report: null,
+      failedOnly: false,
+    };
+
+    const elements = {
+      dropzone: document.getElementById("dropzone"),
+      file: document.getElementById("file"),
+      sample: document.getElementById("sample"),
+      error: document.getElementById("error"),
+      schema: document.getElementById("schema"),
+      target: document.getElementById("target"),
+      targetSub: document.getElementById("target-sub"),
+      model: document.getElementById("model"),
+      voice: document.getElementById("voice"),
+      score: document.getElementById("score"),
+      failureRate: document.getElementById("failure-rate"),
+      created: document.getElementById("created"),
+      format: document.getElementById("format"),
+      readiness: document.getElementById("readiness"),
+      cases: document.getElementById("cases"),
+      empty: document.getElementById("empty"),
+      failedOnly: document.getElementById("failed-only"),
+    };
+
+    const sampleReport = {
+      schema_version: "0.1",
+      created_at: "2026-05-09T19:39:00+00:00",
+      base_url: "http://127.0.0.1:8889/v1",
+      endpoint: "audio.speech",
+      model: "fake:tts",
+      voice: "alloy",
+      response_format: "wav",
+      summary: {ok: true, total: 3, passed: 3, failed: 0, failure_rate: 0},
+      integration_readiness: {
+        open_webui_tts: {
+          status: "ready",
+          reason: "basic OpenAI-compatible /v1/audio/speech request returned audio",
+          cases: ["required fields with response_format"],
+        },
+        pipecat_openai_tts: {
+          status: "likely_ready",
+          reason: "OpenAI-style speech request, speed, and instructions fields passed basic checks",
+          cases: ["required fields with response_format", "speed field", "instructions field"],
+        },
+      },
+      conformance: {
+        cases: [
+          {
+            name: "required fields with response_format",
+            passed: true,
+            status_code: 200,
+            content_type: "audio/wav",
+            elapsed_ms: 118.42,
+            failure: null,
+          },
+          {
+            name: "speed field",
+            passed: true,
+            status_code: 200,
+            content_type: "audio/wav",
+            elapsed_ms: 122.31,
+            failure: null,
+          },
+          {
+            name: "instructions field",
+            passed: true,
+            status_code: 200,
+            content_type: "audio/wav",
+            elapsed_ms: 119.77,
+            failure: null,
+          },
+        ],
+      },
+    };
+
+    function setError(message) {
+      elements.error.textContent = message;
+      elements.error.style.display = message ? "block" : "none";
+    }
+
+    function text(value, fallback = "-") {
+      if (value === null || value === undefined || value === "") {
+        return fallback;
+      }
+      return String(value);
+    }
+
+    function percent(value) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) {
+        return "-";
+      }
+      return `${(numeric * 100).toFixed(1)}% failure rate`;
+    }
+
+    function elapsed(value) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) {
+        return "-";
+      }
+      return `${numeric.toFixed(1)} ms`;
+    }
+
+    function statusClass(status) {
+      if (status === "ready") {
+        return "ready";
+      }
+      if (status === "likely_ready") {
+        return "likely-ready";
+      }
+      return "failed";
+    }
+
+    function labelIntegration(name) {
+      return name.replace(/_/g, " ");
+    }
+
+    function validateReport(report) {
+      if (!report || typeof report !== "object") {
+        throw new Error("Report must be a JSON object.");
+      }
+      if (!report.summary || typeof report.summary !== "object") {
+        throw new Error("Missing summary object.");
+      }
+      if (!report.integration_readiness || typeof report.integration_readiness !== "object") {
+        throw new Error("Missing integration_readiness object.");
+      }
+      const cases = report.conformance && report.conformance.cases;
+      if (!Array.isArray(cases)) {
+        throw new Error("Missing conformance.cases array.");
+      }
+    }
+
+    function loadReport(report) {
+      validateReport(report);
+      state.report = report;
+      setError("");
+      render();
+    }
+
+    function render() {
+      const report = state.report;
+      if (!report) {
+        return;
+      }
+
+      elements.schema.textContent = `Schema ${text(report.schema_version, "unknown")}`;
+      elements.target.textContent = text(report.base_url);
+      elements.targetSub.textContent = text(report.endpoint);
+      elements.model.textContent = text(report.model);
+      elements.voice.textContent = `Voice: ${text(report.voice)}`;
+      elements.score.textContent = `${text(report.summary.passed, "0")}/${text(report.summary.total, "0")}`;
+      elements.failureRate.textContent = percent(report.summary.failure_rate);
+      elements.created.textContent = text(report.created_at);
+      elements.format.textContent = `Format: ${text(report.response_format)}`;
+
+      renderReadiness(report.integration_readiness);
+      renderCases(report.conformance.cases || []);
+    }
+
+    function renderReadiness(readiness) {
+      elements.readiness.replaceChildren();
+      Object.entries(readiness).forEach(([name, value]) => {
+        const article = document.createElement("article");
+        article.className = "readiness";
+
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = labelIntegration(name);
+
+        const status = document.createElement("div");
+        status.className = `status ${statusClass(value.status)}`;
+        status.textContent = text(value.status).replace(/_/g, " ");
+
+        const reason = document.createElement("p");
+        reason.className = "reason";
+        reason.textContent = text(value.reason);
+
+        article.append(label, status, reason);
+        elements.readiness.append(article);
+      });
+    }
+
+    function renderCases(cases) {
+      elements.cases.replaceChildren();
+      const visible = state.failedOnly ? cases.filter((item) => !item.passed) : cases;
+      elements.empty.style.display = visible.length ? "none" : "block";
+      elements.failedOnly.setAttribute("aria-pressed", String(state.failedOnly));
+
+      visible.forEach((item) => {
+        const row = document.createElement("tr");
+        const resultClass = item.passed ? "case-pass" : "case-fail";
+        const resultText = item.passed ? "passed" : "failed";
+        row.append(
+          cell(item.name, "code"),
+          cell(resultText, resultClass),
+          cell(item.status_code, "code"),
+          cell(item.content_type, "code"),
+          cell(elapsed(item.elapsed_ms), "code"),
+          cell(item.failure || "-", "code"),
+        );
+        elements.cases.append(row);
+      });
+    }
+
+    function cell(value, className = "") {
+      const td = document.createElement("td");
+      if (className) {
+        td.className = className;
+      }
+      td.textContent = text(value);
+      return td;
+    }
+
+    function readFile(file) {
+      if (!file) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          loadReport(JSON.parse(String(reader.result)));
+        } catch (error) {
+          setError(error instanceof Error ? error.message : "Unable to read report.");
+        }
+      };
+      reader.onerror = () => setError("Unable to read report file.");
+      reader.readAsText(file);
+    }
+
+    elements.file.addEventListener("change", (event) => {
+      readFile(event.target.files && event.target.files[0]);
+    });
+
+    elements.sample.addEventListener("click", () => {
+      loadReport(sampleReport);
+    });
+
+    elements.failedOnly.addEventListener("click", () => {
+      state.failedOnly = !state.failedOnly;
+      if (state.report) {
+        renderCases(state.report.conformance.cases || []);
+      }
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      elements.dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        elements.dropzone.classList.add("dragover");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      elements.dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        elements.dropzone.classList.remove("dragover");
+      });
+    });
+
+    elements.dropzone.addEventListener("drop", (event) => {
+      readFile(event.dataTransfer && event.dataTransfer.files[0]);
+    });
+  </script>
+</body>
+</html>

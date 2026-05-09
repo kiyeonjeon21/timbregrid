@@ -31,4 +31,6 @@ Readiness labels are intentionally conservative:
 
 Use `timbregrid conformance` when you need a strict pass/fail suite. Use `timbregrid doctor` when you want a concise report for humans.
 
+Open [`../examples/doctor-report-viewer.html`](../examples/doctor-report-viewer.html) in a browser to inspect a local `doctor.json` report with readiness cards and failed-case filtering. The viewer reads files locally and does not upload reports.
+
 For an external-server proof using Speaches, see [`external-server-proof.md`](external-server-proof.md).
