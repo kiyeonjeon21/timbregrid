@@ -29,5 +29,5 @@ policy:
   commercial_use: true
   requires_voice_consent: false
 notes:
-  - "Manifest-only example for lightweight ONNX/CPU edge TTS."
+  - "Optional executable adapter for lightweight ONNX/CPU edge TTS."
   - "Official docs describe 15M to 80M parameter variants and built-in voices."

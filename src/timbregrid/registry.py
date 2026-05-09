@@ -7,6 +7,7 @@ from typing import Callable
 
 from timbregrid.adapters.base import TTSAdapter
 from timbregrid.adapters.fake import FakeTTSAdapter
+from timbregrid.adapters.kitten import KittenTTSAdapter
 from timbregrid.adapters.kokoro import KokoroAdapter
 from timbregrid.models import VoiceInfo
 
@@ -46,6 +47,7 @@ class ModelEntry:
 
 _ROOT = Path(__file__).resolve().parents[2]
 _FAKE_ADAPTER = FakeTTSAdapter()
+_KITTEN_ADAPTER = KittenTTSAdapter()
 _KOKORO_ADAPTER = KokoroAdapter()
 
 _ENTRIES = {
@@ -69,8 +71,9 @@ _ENTRIES = {
         id="kitten-tts:nano-0.8",
         name="KittenTTS Nano 0.8",
         manifest_path=str(_ROOT / "manifests" / "kitten-tts-nano-0.8.yaml"),
-        executable=False,
-        requires_extra=None,
+        executable=True,
+        requires_extra="kittentts",
+        adapter_factory=lambda: _KITTEN_ADAPTER,
     ),
     "chatterbox:tts": ModelEntry(
         id="chatterbox:tts",

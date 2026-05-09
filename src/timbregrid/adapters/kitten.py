@@ -14,47 +14,46 @@ from timbregrid.models import Capabilities, SpeechRequest, SpeechResult, VoiceIn
 
 SAMPLE_RATE_HZ = 24_000
 SUPPORTED_FORMATS = {"wav", "pcm"}
+DEFAULT_MODEL_NAME = "KittenML/kitten-tts-nano-0.8"
+KITTEN_VOICES = ("Bella", "Jasper", "Luna", "Bruno", "Rosie", "Hugo", "Kiki", "Leo")
 INSTALL_HINT = (
-    "Kokoro support requires optional dependencies. Install them with "
-    "`uv sync --all-groups --extra kokoro` or `pip install 'timbregrid[kokoro]'`, and install "
-    "the system `espeak-ng` package if your platform requires it."
+    "KittenTTS support requires optional dependencies. Install them with "
+    "`uv sync --all-groups --extra kitten` or `pip install 'timbregrid[kitten]'`."
 )
 
 
-class KokoroAdapter:
-    id = "kokoro:82m"
+class KittenTTSAdapter:
+    id = "kitten-tts:nano-0.8"
 
-    def __init__(self, *, lang_code: str = "a") -> None:
-        self.lang_code = lang_code
-        self._pipeline: Any | None = None
+    def __init__(self, *, model_name: str = DEFAULT_MODEL_NAME) -> None:
+        self.model_name = model_name
+        self._model: Any | None = None
 
     def load(self) -> None:
-        if self._pipeline is not None:
+        if self._model is not None:
             return
 
         try:
-            kokoro = importlib.import_module("kokoro")
+            kittentts = importlib.import_module("kittentts")
         except ModuleNotFoundError as exc:
             raise AdapterDependencyError(INSTALL_HINT) from exc
 
         try:
-            self._pipeline = kokoro.KPipeline(lang_code=self.lang_code)
-        except Exception as exc:  # pragma: no cover - depends on host espeak/model setup.
-            raise AdapterDependencyError(f"{INSTALL_HINT} Kokoro failed to initialize: {exc}") from exc
+            self._model = kittentts.KittenTTS(self.model_name)
+        except Exception as exc:  # pragma: no cover - depends on host model/cache setup.
+            raise AdapterDependencyError(f"{INSTALL_HINT} KittenTTS failed to initialize: {exc}") from exc
 
     def voices(self) -> list[VoiceInfo]:
         return [
-            VoiceInfo(id="af_heart", name="AF Heart", language="en-US", tags=["kokoro"]),
-            VoiceInfo(id="af_bella", name="AF Bella", language="en-US", tags=["kokoro"]),
-            VoiceInfo(id="af_nicole", name="AF Nicole", language="en-US", tags=["kokoro"]),
-            VoiceInfo(id="am_adam", name="AM Adam", language="en-US", tags=["kokoro"]),
+            VoiceInfo(id=voice, name=voice, tags=["kitten", "edge", "cpu"])
+            for voice in KITTEN_VOICES
         ]
 
     def capabilities(self) -> Capabilities:
         return Capabilities(
             streaming=False,
             voice_cloning=False,
-            multilingual="limited",
+            multilingual="none",
             long_form="limited",
             style_control="speed",
             formats=["wav", "pcm"],
@@ -68,57 +67,30 @@ class KokoroAdapter:
             )
 
         self.load()
-        assert self._pipeline is not None
+        assert self._model is not None
 
         started = time.perf_counter()
-        chunks: list[bytes] = []
-        first_audio_ms: float | None = None
-        total_samples = 0
+        audio = self._model.generate(request.input, voice=request.voice, speed=request.speed)
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        pcm_audio, samples = _audio_to_pcm16(audio)
+        duration_ms = samples / SAMPLE_RATE_HZ * 1000 if samples else 0.0
 
-        generator = self._pipeline(
-            request.input,
-            voice=request.voice,
-            speed=request.speed,
-            split_pattern=r"\n+",
-        )
-
-        for item in generator:
-            audio = _pipeline_audio(item)
-            pcm, samples = _audio_to_pcm16(audio)
-            if samples == 0:
-                continue
-            if first_audio_ms is None:
-                first_audio_ms = (time.perf_counter() - started) * 1000
-            chunks.append(pcm)
-            total_samples += samples
-
-        pcm_audio = b"".join(chunks)
-        duration_ms = total_samples / SAMPLE_RATE_HZ * 1000 if total_samples else 0.0
         if request.response_format == "wav":
-            audio = _wrap_wav(pcm_audio)
+            output = _wrap_wav(pcm_audio)
             content_type = "audio/wav"
         else:
-            audio = pcm_audio
+            output = pcm_audio
             content_type = "application/octet-stream"
 
         return SpeechResult(
-            audio=audio,
+            audio=output,
             format=request.response_format,
             content_type=content_type,
             duration_ms=duration_ms,
             sample_rate_hz=SAMPLE_RATE_HZ,
-            time_to_first_audio_ms=first_audio_ms or 0.0,
+            time_to_first_audio_ms=elapsed_ms,
             model=self.id,
         )
-
-
-def _pipeline_audio(item: Any) -> Any:
-    audio = getattr(item, "audio", None)
-    if audio is not None:
-        return audio
-    if isinstance(item, tuple) and len(item) >= 3:
-        return item[2]
-    return item
 
 
 def _audio_to_pcm16(audio: Any) -> tuple[bytes, int]:

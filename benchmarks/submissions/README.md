@@ -8,4 +8,4 @@ Files in this directory are evidence for review and routing experiments, not gen
 uv run timbregrid bench validate benchmarks/submissions/<file>.json
 ```
 
-The checked-in Kokoro artifact is a local Apple Silicon run for `kokoro:82m` on the `realtime-agent` suite. It should not be presented as a CPU, CUDA, or cross-machine performance claim.
+The checked-in Kokoro and KittenTTS artifacts are local Apple Silicon runs on the `realtime-agent` suite. They should not be presented as CPU, CUDA, or cross-machine performance claims.

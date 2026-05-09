@@ -13,6 +13,10 @@ class VoiceCatalogError(ValueError):
     """Raised when a local voice catalog cannot be loaded safely."""
 
 
+class VoiceConsentError(VoiceCatalogError):
+    """Raised when a voice is missing required consent metadata."""
+
+
 class VoiceCatalog(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -63,6 +67,22 @@ def filter_voices(voices: Iterable[VoiceInfo], model: str | None) -> list[VoiceI
     return [voice for voice in voices if voice.model == model]
 
 
+def find_voice(voices: Iterable[VoiceInfo], voice_id: str) -> VoiceInfo | None:
+    for voice in voices:
+        if voice.id == voice_id:
+            return voice
+    return None
+
+
+def validate_voice_consent(voice: VoiceInfo) -> None:
+    if not _requires_consent_record(voice):
+        return
+    if voice.consent != "granted":
+        raise VoiceConsentError(f"Voice '{voice.id}' for model '{voice.model}' requires consent='granted'")
+    if voice.provenance is None or not voice.provenance.strip():
+        raise VoiceConsentError(f"Voice '{voice.id}' for model '{voice.model}' requires provenance")
+
+
 def _validate_catalog_voices(voices: list[VoiceInfo]) -> None:
     seen: set[tuple[str, str]] = set()
     for voice in voices:
@@ -83,15 +103,7 @@ def _validate_catalog_voices(voices: list[VoiceInfo]) -> None:
                 f"Voice '{voice.id}' for model '{voice.model}' with source='{voice.source}' must set builtin=false"
             )
 
-        if _requires_consent_record(voice):
-            if voice.consent != "granted":
-                raise VoiceCatalogError(
-                    f"Voice '{voice.id}' for model '{voice.model}' requires consent='granted'"
-                )
-            if voice.provenance is None or not voice.provenance.strip():
-                raise VoiceCatalogError(
-                    f"Voice '{voice.id}' for model '{voice.model}' requires provenance"
-                )
+        validate_voice_consent(voice)
 
 
 def _requires_consent_record(voice: VoiceInfo) -> bool:

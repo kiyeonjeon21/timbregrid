@@ -4,7 +4,13 @@ from pathlib import Path
 import pytest
 
 from timbregrid.models import VoiceInfo
-from timbregrid.voices import VoiceCatalogError, load_voice_catalog, merge_voices
+from timbregrid.voices import (
+    VoiceCatalogError,
+    VoiceConsentError,
+    load_voice_catalog,
+    merge_voices,
+    validate_voice_consent,
+)
 
 
 def test_load_voice_catalog_accepts_local_voice_with_consent(tmp_path: Path) -> None:
@@ -140,6 +146,21 @@ def test_merge_voices_rejects_builtin_catalog_duplicate() -> None:
 
     with pytest.raises(VoiceCatalogError, match="Duplicate voice 'alloy'"):
         merge_voices(builtin, catalog)
+
+
+def test_validate_voice_consent_rejects_invalid_runtime_voice() -> None:
+    voice = VoiceInfo(
+        id="voice_a",
+        name="Voice A",
+        model="fake:tts",
+        builtin=False,
+        source="local",
+        provenance="Recorded locally by the user.",
+        consent="unknown",
+    )
+
+    with pytest.raises(VoiceConsentError, match="requires consent='granted'"):
+        validate_voice_consent(voice)
 
 
 def _write_catalog(tmp_path: Path, voices: list[dict]) -> Path:

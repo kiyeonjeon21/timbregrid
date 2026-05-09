@@ -14,7 +14,15 @@ from timbregrid.errors import openai_error
 from timbregrid.models import SpeechRequest, VoiceInfo
 from timbregrid.registry import get_adapter, get_model_entry, list_model_voices
 from timbregrid.routing import RouteNotFound, resolve_route
-from timbregrid.voices import VoiceCatalogError, filter_voices, load_voice_catalog, merge_voices
+from timbregrid.voices import (
+    VoiceCatalogError,
+    VoiceConsentError,
+    filter_voices,
+    find_voice,
+    load_voice_catalog,
+    merge_voices,
+    validate_voice_consent,
+)
 
 
 SUPPORTED_OUTPUT_FORMATS = {"mp3", "wav", "pcm"}
@@ -121,6 +129,28 @@ def create_app(
         routed_request = request.model_copy(update={"model": selected_model})
 
         try:
+            _validate_synthesis_voice(routed_request, catalog_voices)
+        except LookupError:
+            return openai_error(
+                f"Voice '{routed_request.voice}' was not found for model '{selected_model}'",
+                param="voice",
+                code="voice_not_found",
+            )
+        except VoiceConsentError as exc:
+            return openai_error(
+                str(exc),
+                param="voice",
+                code="voice_consent_required",
+            )
+        except VoiceCatalogError as exc:
+            return openai_error(
+                str(exc),
+                status_code=500,
+                param="voice",
+                code="voice_catalog_error",
+            )
+
+        try:
             adapter = get_adapter(selected_model)
         except KeyError:
             return openai_error(
@@ -163,6 +193,15 @@ def _validate_catalog_models(voices: list[VoiceInfo]) -> None:
             get_model_entry(voice.model)
         except KeyError as exc:
             raise VoiceCatalogError(f"Voice '{voice.id}' references unknown model '{voice.model}'") from exc
+
+
+def _validate_synthesis_voice(request: SpeechRequest, catalog_voices: list[VoiceInfo]) -> VoiceInfo:
+    voices = merge_voices(list_model_voices(request.model), filter_voices(catalog_voices, request.model))
+    voice = find_voice(voices, request.voice)
+    if voice is None:
+        raise LookupError(request.voice)
+    validate_voice_consent(voice)
+    return voice
 
 
 app = create_app()

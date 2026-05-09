@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-groups
 
+      - name: Check optional dependency resolution
+        run: uv sync --all-groups --extra kitten --extra kokoro --dry-run
+
       - name: Run tests
         run: uv run pytest
 

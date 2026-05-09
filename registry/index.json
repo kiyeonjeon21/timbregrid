@@ -134,19 +134,19 @@
         "style_control": "speed",
         "voice_cloning": false
       },
-      "executable": false,
+      "executable": true,
       "id": "kitten-tts:nano-0.8",
       "manifest_path": "manifests/kitten-tts-nano-0.8.yaml",
       "name": "KittenTTS Nano 0.8",
       "notes": [
-        "Manifest-only example for lightweight ONNX/CPU edge TTS.",
+        "Optional executable adapter for lightweight ONNX/CPU edge TTS.",
         "Official docs describe 15M to 80M parameter variants and built-in voices."
       ],
       "policy": {
         "commercial_use": true,
         "requires_voice_consent": false
       },
-      "requires_extra": null,
+      "requires_extra": "kittentts",
       "runtime": {
         "acceleration": {
           "cpu": true,
@@ -157,7 +157,7 @@
         "package": "kittentts"
       },
       "schema_version": "0.1",
-      "status": "manifest-only",
+      "status": "requires optional dependency: kittentts",
       "upstream": {
         "homepage": "https://github.com/KittenML/KittenTTS",
         "license": "apache-2.0",

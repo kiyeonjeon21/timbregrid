@@ -4,7 +4,7 @@ TimbreGrid is an open compatibility and evaluation layer for open-source text-to
 
 It provides model manifests, benchmark tooling, basic OpenAI-compatible speech conformance checks, benchmark-aware routing, and a small reference `/v1/audio/speech` gateway.
 
-**Status**: early MVP. The fake gateway, manifest registry, benchmark CLI, conformance suite, benchmark validation, and optional Kokoro adapter are implemented. KittenTTS, Chatterbox, and Qwen3-TTS are currently manifest-only examples.
+**Status**: early MVP. The fake gateway, manifest registry, benchmark CLI, conformance suite, benchmark validation, optional Kokoro adapter, and optional KittenTTS adapter are implemented. Chatterbox and Qwen3-TTS are currently manifest-only examples.
 
 ## Quickstart
 
@@ -51,18 +51,19 @@ The fake adapter generates deterministic local audio bytes without downloading m
 - Validate benchmark JSON examples and submissions for model ids, suites, hardware profiles, prompts, and aggregate metrics.
 - Run basic OpenAI-compatible speech conformance checks.
 - Serve `POST /v1/audio/speech` for `fake:tts`.
-- Expose builtin and local voice metadata through `GET /v1/audio/voices`.
+- Expose builtin and local voice metadata through `GET /v1/audio/voices` and enforce known voice metadata during synthesis.
 - Verify Python OpenAI SDK compatibility and run a direct SDK example against the local gateway.
 - Route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy.
 - Run `kokoro:82m` when optional Kokoro dependencies and `espeak-ng` are installed.
+- Run `kitten-tts:nano-0.8` when optional KittenTTS dependencies are installed.
 
 Not included yet:
 
-- KittenTTS, Chatterbox, or Qwen3-TTS inference adapters.
-- SQLite voice metadata storage, custom voice synthesis, or synthesis-time provenance enforcement.
+- Chatterbox or Qwen3-TTS inference adapters.
+- SQLite voice metadata storage or custom voice synthesis.
 - Hosted registry publishing.
 - SSE audio streaming.
-- Open WebUI, Pipecat, or LiveKit integration examples.
+- Pipecat or LiveKit integration examples; Open WebUI is currently a docs-only TTS guide.
 
 ## Model Registry
 
@@ -82,7 +83,7 @@ Known model entries:
 
 - `fake:tts`: deterministic test adapter.
 - `kokoro:82m`: optional executable adapter via `timbregrid[kokoro]`.
-- `kitten-tts:nano-0.8`: manifest-only edge/CPU example.
+- `kitten-tts:nano-0.8`: optional executable edge/CPU adapter via `timbregrid[kitten]`.
 - `chatterbox:tts`: manifest-only expressive/cloning example.
 - `qwen3-tts:0.6b-base`: manifest-only multilingual/cloning example.
 
@@ -108,7 +109,7 @@ uv run timbregrid bench validate /tmp/fake.json
 
 The checked-in benchmark under [`benchmarks/examples`](benchmarks/examples) is deterministic fake data. It documents the JSON format and supports tests; it is not a hardware performance claim.
 
-Raw real-hardware submissions live under [`benchmarks/submissions`](benchmarks/submissions). The checked-in Kokoro Apple Silicon artifact is one contributor machine run, not a general performance guarantee.
+Raw real-hardware submissions live under [`benchmarks/submissions`](benchmarks/submissions). The checked-in Kokoro and KittenTTS Apple Silicon artifacts are contributor machine runs, not general performance guarantees.
 
 Benchmark validation recomputes run counts, failures, failure rate, average latency metrics, peak memory, and suite prompts before accepting a submission.
 
@@ -119,6 +120,15 @@ See [`docs/benchmarking.md`](docs/benchmarking.md) and [`docs/benchmark-submissi
 Run the OpenAI Python SDK example against a local gateway:
 
 ```bash
+uv run python examples/openai_sdk_speech.py
+```
+
+For KittenTTS:
+
+```bash
+TIMBREGRID_MODEL=kitten-tts:nano-0.8 \
+TIMBREGRID_VOICE=Jasper \
+TIMBREGRID_OUTPUT=/tmp/kitten-sdk.wav \
 uv run python examples/openai_sdk_speech.py
 ```
 
@@ -177,7 +187,39 @@ Local voice records can be supplied as JSON without committing private assets:
 TIMBREGRID_VOICE_CATALOG=/path/to/voices.json uv run timbregrid serve
 ```
 
-Custom or local voices must set `builtin=false`, set `source` to `local` or `custom`, include `consent="granted"`, and provide a non-empty `provenance` value. TimbreGrid exposes these records for governance and discovery; it does not synthesize cloned voices yet.
+Speech requests must use a known builtin voice or a local catalog voice for the selected model. Custom or local voices must set `builtin=false`, set `source` to `local` or `custom`, include `consent="granted"`, and provide a non-empty `provenance` value. TimbreGrid exposes these records for governance and discovery; it does not synthesize cloned voices yet.
+
+## Optional KittenTTS Adapter
+
+Install optional KittenTTS dependencies while keeping development dependencies available:
+
+```bash
+uv sync --all-groups --extra kitten
+```
+
+To keep Kokoro installed in the same environment, include both extras in the same sync:
+
+```bash
+uv sync --all-groups --extra kitten --extra kokoro
+```
+
+Try the adapter:
+
+```bash
+uv run timbregrid models inspect kitten-tts:nano-0.8
+uv run timbregrid manifest validate manifests/kitten-tts-nano-0.8.yaml
+uv run timbregrid serve --model kitten-tts:nano-0.8 --port 8889
+```
+
+Use `response_format="wav"` or `response_format="pcm"` and a KittenTTS voice such as `Jasper`.
+
+## Integrations
+
+TimbreGrid can be used as a local OpenAI-compatible TTS backend for tools that call `/v1/audio/speech`.
+
+- [Open WebUI integration guide](docs/integrations/open-webui.md)
+
+Integration examples are intentionally narrow until streaming and broader gateway compatibility stabilize.
 
 ## Docker
 
@@ -194,7 +236,7 @@ The Docker image is intentionally lightweight. It does not include Kokoro, `espe
 Install optional Kokoro dependencies:
 
 ```bash
-uv sync --extra kokoro
+uv sync --all-groups --extra kokoro
 ```
 
 Kokoro may also require the system `espeak-ng` package. On macOS:
@@ -224,16 +266,17 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase | Status | Focus |
 |---|---|---|
 | Phase 0: Spec-first planning | complete | Manifest schema, speech models, benchmark suites, conformance cases, example manifests. |
-| Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and one Kokoro Apple Silicon artifact exist; broader hardware coverage still needs contributors. |
-| Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro adapter, Docker smoke path, and benchmark-aware routing work; KittenTTS and expressive/cloning adapters are next. |
+| Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and Kokoro/KittenTTS Apple Silicon artifacts exist; broader hardware coverage still needs contributors. |
+| Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro and KittenTTS adapters, Docker smoke path, and benchmark-aware routing work; expressive/cloning adapters are next. |
 | Phase 3: Community registry | partial | Local registry, generated support matrix, PR/issue templates, and CI checks exist; hosted registry, link/checksum validation, and install smoke coverage remain. |
-| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, and `/v1/audio/voices` exist; synthesis-time enforcement and integration examples remain. |
+| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, and synthesis-time voice checks exist; integration examples remain. |
 
 Near-term next work:
 
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
-- Implement a KittenTTS adapter for edge/CPU use.
-- Add synthesis-time consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
+- Add more OpenAI-compatible integration examples after the Open WebUI path is stable.
+- Implement an expressive or cloning adapter, likely Chatterbox first.
+- Harden registry publishing, upstream metadata checks, and optional install smoke coverage.
 
 ## Contributing
 

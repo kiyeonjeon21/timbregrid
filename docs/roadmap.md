@@ -23,7 +23,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add `timbregrid conformance` for existing OpenAI-compatible TTS servers.
 - [x] Document how other servers can use the benchmark and conformance tests.
 - [ ] Publish real raw benchmark JSON examples for Apple Silicon, CPU, and CUDA where available.
-  - Partial: deterministic fake benchmark examples, validation paths, and one Kokoro Apple Silicon submission exist.
+  - Partial: deterministic fake benchmark examples, validation paths, and Kokoro/KittenTTS Apple Silicon submissions exist.
   - Completion requires broader raw benchmark JSON produced on real hardware, not fabricated or hand-edited summaries.
 
 ## Phase 2: Reference Gateway MVP
@@ -33,7 +33,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add Kokoro as the first optional real-model baseline through `timbregrid[kokoro]`.
 - [x] Add `model="auto"` routing by benchmark data, manifest capabilities, response format, availability, purpose, hardware profile, and license policy.
 - [x] Add a lightweight Docker smoke path for the fake gateway.
-- [ ] Implement a KittenTTS adapter for the edge/CPU lane.
+- [x] Implement a KittenTTS adapter for the edge/CPU lane.
 - [ ] Implement one expressive or cloning backend, likely Chatterbox first.
 - [ ] Add SSE audio streaming after the non-streaming gateway contract is stable.
 
@@ -53,9 +53,10 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add local voice records.
 - [x] Add consent metadata and provenance fields for custom/cloned voices.
 - [x] Add `GET /v1/audio/voices`.
-- [ ] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
+- [x] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
 - [x] Add a direct OpenAI SDK usage example beyond compatibility tests.
 - [ ] Add integration examples for Open WebUI, Pipecat, and LiveKit.
+  - Partial: an Open WebUI TTS integration guide exists.
 - [ ] Add a WebUI for A/B tests, latency views, and voice preview only after the CLI/gateway contracts stabilize.
 
 ## First Milestone
@@ -89,10 +90,10 @@ Success means:
 
 ## Next Milestones
 
-1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
-2. **KittenTTS edge adapter**: add the first lightweight CPU-focused adapter without adding heavy dependencies to the default install path.
-3. **Voice governance enforcement**: add synthesis-time consent/provenance checks before treating cloning adapters as a mainline feature.
-4. **Integration examples**: add Open WebUI, Pipecat, and LiveKit docs or examples after the direct OpenAI SDK example.
+1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro, KittenTTS, and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
+2. **Expressive/cloning adapter**: add Chatterbox or a similar backend behind optional dependencies, using the existing voice governance checks.
+3. **Registry hardening**: publish a hosted static registry index and add stronger deterministic metadata and optional install smoke checks.
+4. **Integration examples**: harden the Open WebUI guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
 
 ## Technical Choices
 

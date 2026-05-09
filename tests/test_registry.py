@@ -1,4 +1,5 @@
 from timbregrid.adapters.fake import FakeTTSAdapter
+from timbregrid.adapters.kitten import KittenTTSAdapter
 from timbregrid.adapters.kokoro import KokoroAdapter
 from timbregrid.registry import get_adapter, get_model_entry, list_models
 
@@ -17,6 +18,7 @@ def test_registry_lists_known_models() -> None:
 
 def test_registry_returns_adapters() -> None:
     assert isinstance(get_adapter("fake:tts"), FakeTTSAdapter)
+    assert isinstance(get_adapter("kitten-tts:nano-0.8"), KittenTTSAdapter)
     assert isinstance(get_adapter("kokoro:82m"), KokoroAdapter)
 
 
@@ -25,6 +27,15 @@ def test_kokoro_entry_exposes_optional_extra_status() -> None:
     body = entry.to_dict()
 
     assert body["requires_extra"] == "kokoro"
+    assert body["executable"] is True
+    assert body["status"]
+
+
+def test_kitten_entry_exposes_optional_extra_status() -> None:
+    entry = get_model_entry("kitten-tts:nano-0.8")
+    body = entry.to_dict()
+
+    assert body["requires_extra"] == "kittentts"
     assert body["executable"] is True
     assert body["status"]
 
