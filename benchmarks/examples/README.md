@@ -10,4 +10,4 @@ Validate examples with:
 uv run timbregrid bench validate benchmarks/examples/fake-tts.realtime-agent.json
 ```
 
-Real submissions should include raw output from the benchmark CLI and enough hardware metadata to reproduce the run. Do not edit metrics by hand.
+Real submissions should include raw output from the benchmark CLI and a stable `hardware.profile` value such as `apple-silicon`, `cpu`, or `cuda`. Do not edit metrics by hand; validation recomputes aggregate metrics from the run entries.

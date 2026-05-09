@@ -45,6 +45,7 @@ def bench(
     benchmark_path: Annotated[Path | None, typer.Argument(exists=True, dir_okay=False)] = None,
     suite: Annotated[str, typer.Option("--suite")] = "realtime-agent",
     voice: Annotated[str | None, typer.Option("--voice")] = None,
+    hardware_profile: Annotated[str | None, typer.Option("--hardware-profile")] = None,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
     output_format: Annotated[str, typer.Option("--format")] = "json",
 ) -> None:
@@ -69,7 +70,12 @@ def bench(
         raise typer.Exit(1)
 
     try:
-        result = run_benchmark(model, suite=suite, voice=voice)
+        result = run_benchmark(
+            model,
+            suite=suite,
+            voice=voice,
+            hardware_profile=hardware_profile,
+        )
     except (KeyError, RuntimeError, ValueError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc

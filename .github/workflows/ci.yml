@@ -43,7 +43,12 @@ jobs:
           done
 
       - name: Run benchmark smoke test
-        run: uv run timbregrid bench fake:tts --suite realtime-agent --output /tmp/timbregrid-bench.json
+        run: |
+          uv run timbregrid bench fake:tts \
+            --suite realtime-agent \
+            --hardware-profile generic-ci \
+            --output /tmp/timbregrid-bench.json
+          uv run timbregrid bench validate /tmp/timbregrid-bench.json
 
   docker-smoke:
     runs-on: ubuntu-latest

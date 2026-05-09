@@ -36,6 +36,7 @@
 ## Codex Project Setup
 
 - Use `.agents/skills/timbregrid-roadmap` when the user asks what remains, what to do next, or to continue from README/ROADMAP phases.
+- Use `.agents/skills/timbregrid-oss-review` when the user asks about OSS value, public-release readiness, repository positioning, contributor readiness, or README claim review.
 - Use `.agents/skills/timbregrid-validation` before finalizing implementation work.
 - Use project custom agents in `.codex/agents` only when the user explicitly asks for subagents or parallel agent work.
 - Hooks under `.codex/hooks` are advisory guardrails; deterministic enforcement should still live in tests, CI, and project commands.

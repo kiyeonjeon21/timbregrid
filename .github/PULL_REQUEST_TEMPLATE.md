@@ -25,11 +25,12 @@
 - [ ] Audio formats and sample rate are listed.
 - [ ] Voice, cloning, multilingual, long-form, streaming, and style-control flags are explicit.
 - [ ] Commercial-use and consent requirements are explicit.
+- [ ] Audio formats, runtime package, and consent flags pass semantic validation.
 
 # Benchmark Checklist
 
 - [ ] Benchmark JSON was produced by `uv run timbregrid bench`.
-- [ ] Hardware metadata is present.
+- [ ] Hardware metadata includes a stable `hardware.profile`.
 - [ ] Metrics are not hand-edited.
 - [ ] Fake or synthetic examples are clearly labeled.
 

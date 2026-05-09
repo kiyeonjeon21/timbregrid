@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import platform
 import time
 import tracemalloc
@@ -18,6 +19,7 @@ def run_benchmark(
     suite: str = "realtime-agent",
     response_format: str = "wav",
     voice: str | None = None,
+    hardware_profile: str | None = None,
 ) -> BenchmarkResult:
     benchmark_suite = get_benchmark_suite(suite)
 
@@ -72,7 +74,7 @@ def run_benchmark(
         model=model,
         suite=suite,
         created_at=datetime.now(timezone.utc).isoformat(),
-        hardware=_hardware_profile(),
+        hardware=_hardware_profile(hardware_profile),
         metrics=_aggregate_metrics(runs),
         runs=runs,
     )
@@ -86,13 +88,22 @@ def write_benchmark(result: BenchmarkResult, output: Path) -> None:
     )
 
 
-def _hardware_profile() -> dict[str, str]:
+def _hardware_profile(profile: str | None = None) -> dict[str, str]:
     return {
         "os": platform.platform(),
         "machine": platform.machine(),
         "processor": platform.processor(),
+        "profile": profile or os.environ.get("TIMBREGRID_HARDWARE_PROFILE") or _infer_profile(),
         "python": platform.python_version(),
     }
+
+
+def _infer_profile() -> str:
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+    if system == "darwin" and machine in {"arm64", "aarch64"}:
+        return "apple-silicon"
+    return "cpu"
 
 
 def _default_voice(adapter) -> str:

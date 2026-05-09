@@ -20,6 +20,7 @@ Run a benchmark and validate the raw JSON output:
 ```bash
 uv run timbregrid bench fake:tts \
   --suite realtime-agent \
+  --hardware-profile generic-ci \
   --output /tmp/timbregrid-bench.json
 
 uv run timbregrid bench validate /tmp/timbregrid-bench.json
@@ -44,10 +45,10 @@ The fake adapter generates deterministic local audio bytes without downloading m
 
 ## What Works Today
 
-- Validate TimbreGrid model manifests from YAML.
+- Validate TimbreGrid model manifests from YAML, including link, license, runtime, format, and consent consistency.
 - Generate a static registry index and support matrix from manifests.
 - Run fake-adapter benchmark suites and write raw JSON output.
-- Validate benchmark JSON examples and submissions.
+- Validate benchmark JSON examples and submissions for model ids, suites, hardware profiles, prompts, and aggregate metrics.
 - Run OpenAI-compatible speech conformance checks.
 - Serve `POST /v1/audio/speech` for `fake:tts`.
 - Verify Python OpenAI SDK compatibility against the local gateway.
@@ -97,11 +98,16 @@ Benchmark suites are defined for:
 Example:
 
 ```bash
-uv run timbregrid bench fake:tts --suite realtime-agent --output /tmp/fake.json
+uv run timbregrid bench fake:tts \
+  --suite realtime-agent \
+  --hardware-profile cpu \
+  --output /tmp/fake.json
 uv run timbregrid bench validate /tmp/fake.json
 ```
 
 The checked-in benchmark under [`benchmarks/examples`](benchmarks/examples) is deterministic fake data. It documents the JSON format and supports tests; it is not a hardware performance claim.
+
+Benchmark validation recomputes run counts, failures, failure rate, average latency metrics, peak memory, and suite prompts before accepting a submission.
 
 See [`docs/benchmarking.md`](docs/benchmarking.md) and [`docs/benchmark-submissions.md`](docs/benchmark-submissions.md).
 
@@ -174,23 +180,21 @@ Use `response_format="wav"` and a Kokoro voice such as `af_heart`.
 
 ## Roadmap
 
-Completed:
+Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Public status is intentionally conservative:
 
-- Manifest schema and validation.
-- Speech request/result/capability models.
-- Benchmark prompt suites.
-- OpenAI speech conformance cases.
-- Example manifests for Kokoro, KittenTTS, Chatterbox, and Qwen3-TTS.
-- Fake gateway, Docker smoke path, registry generation, benchmark validation, and support matrix.
+| Phase | Status | Focus |
+|---|---|---|
+| Phase 0: Spec-first planning | complete | Manifest schema, speech models, benchmark suites, conformance cases, example manifests. |
+| Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, and submission validation work; real hardware benchmark artifacts still need contributors. |
+| Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro adapter, Docker smoke path, and benchmark-aware routing work; KittenTTS and expressive/cloning adapters are next. |
+| Phase 3: Community registry | partial | Local registry, generated support matrix, PR/issue templates, and CI checks exist; hosted registry, link/checksum validation, and install smoke coverage remain. |
+| Phase 4: Voice governance and integrations | not started | Voice records, consent/provenance enforcement, `/v1/audio/voices`, and integration examples remain. |
 
-Next:
+Near-term next work:
 
 - Publish real raw benchmark examples for Apple Silicon, CPU, and CUDA where available.
-- Add a manifest contribution path and stronger CI checks for links, checksums, licenses, and install smoke tests.
 - Implement a KittenTTS adapter for edge/CPU use.
-- Implement one expressive or cloning backend, likely Chatterbox first.
 - Add local voice records, consent metadata, and `/v1/audio/voices`.
-- Add integration examples for Open WebUI, Pipecat, LiveKit, and direct OpenAI SDK usage.
 
 ## Contributing
 

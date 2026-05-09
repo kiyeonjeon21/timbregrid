@@ -20,13 +20,23 @@ def test_bench_cli_writes_json(tmp_path: Path) -> None:
 
     result = CliRunner().invoke(
         app,
-        ["bench", "fake:tts", "--suite", "realtime-agent", "--output", str(output)],
+        [
+            "bench",
+            "fake:tts",
+            "--suite",
+            "realtime-agent",
+            "--hardware-profile",
+            "generic-ci",
+            "--output",
+            str(output),
+        ],
     )
 
     assert result.exit_code == 0
     body = json.loads(output.read_text(encoding="utf-8"))
     assert body["model"] == "fake:tts"
     assert body["suite"] == "realtime-agent"
+    assert body["hardware"]["profile"] == "generic-ci"
     assert body["metrics"]["runs"] == 3
     assert body["metrics"]["failures"] == 0
 

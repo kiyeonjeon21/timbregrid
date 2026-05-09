@@ -58,6 +58,8 @@ Every manifest should include:
 
 Do not mark a model executable unless this repo includes an adapter or an explicit optional extra for it.
 
+Manifest validation also checks URL shape, lowercase SPDX-style license identifiers, runtime package presence for Python runtimes, matching audio/capability formats, and consent requirements for custom or cloning voices.
+
 ## Benchmark Data
 
 Submit raw JSON produced by the benchmark CLI. Do not hand-write metrics or submit fabricated hardware results.
