@@ -46,9 +46,11 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Run CI checks for tests, manifest validation, registry drift, benchmark examples, benchmark smoke, Docker smoke, and conformance against the Docker gateway.
 - [x] Publish a hosted static registry index.
 - [x] Publish a prerelease with release artifacts and a GHCR fake-gateway image.
-- [ ] Add stronger deterministic CI checks for upstream links, checksums, license identifiers, and optional install smoke tests.
-  - Partial: optional dependency resolution dry-run and release Docker smoke checks exist.
+- [ ] Add stronger CI checks for upstream links, checksums, license identifiers, and optional install smoke tests.
+  - Partial: license allow-listing, network-dependent upstream URL audit, optional dependency resolution dry-run, and release Docker smoke checks exist.
+  - Remaining: checksum metadata checks and broader optional install smoke coverage.
 - [ ] Add a clearer external manifest contribution guide once the first outside-style manifest PR flow is tested.
+  - Partial: a manifest contribution guide exists; completion requires validating it against an outside-style PR.
 
 ## Phase 4: Voice Governance And Integrations
 
@@ -94,7 +96,7 @@ Success means:
 
 1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro, KittenTTS, and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
 2. **Expressive/cloning adapter**: add Chatterbox or a similar backend behind optional dependencies, using the existing voice governance checks.
-3. **Registry hardening**: add stronger deterministic metadata checks, optional install smoke coverage, and PyPI publishing readiness.
+3. **Registry hardening**: add checksum metadata checks, broader optional install smoke coverage, and complete PyPI publishing readiness after the KittenTTS dependency metadata path is resolved.
 4. **Integration examples**: harden the Open WebUI guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
 
 ## Technical Choices

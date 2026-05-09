@@ -27,6 +27,7 @@ Run the checks that match your change:
 
 ```bash
 uv run pytest
+uv run timbregrid registry audit
 uv run timbregrid registry build --check
 for benchmark in benchmarks/examples/*.json; do uv run timbregrid bench validate "$benchmark"; done
 for benchmark in benchmarks/submissions/*.json; do uv run timbregrid bench validate "$benchmark"; done
@@ -36,6 +37,7 @@ For manifest changes:
 
 ```bash
 uv run timbregrid manifest validate manifests/<model>.yaml
+uv run timbregrid registry audit
 uv run timbregrid registry build
 uv run timbregrid registry build --check
 ```
@@ -60,6 +62,14 @@ Every manifest should include:
 Do not mark a model executable unless this repo includes an adapter or an explicit optional extra for it.
 
 Manifest validation also checks URL shape, lowercase SPDX-style license identifiers, runtime package presence for Python runtimes, matching audio/capability formats, and consent requirements for custom or cloning voices.
+
+See `docs/manifest-contributions.md` for the full manifest PR flow.
+
+## Adapter Contributions
+
+Adapters should keep heavyweight model dependencies optional, load model packages lazily, expose voices through the registry, and include tests that do not require downloading large weights.
+
+See `docs/adapter-contributions.md` for the adapter checklist.
 
 ## Benchmark Data
 

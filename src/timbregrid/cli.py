@@ -14,6 +14,7 @@ from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
 from timbregrid.models import SpeechRequest
 from timbregrid.registry import get_model_entry, list_models
+from timbregrid.registry_audit import audit_registry
 from timbregrid.registry_index import (
     RegistryIndexError,
     stale_registry_artifacts,
@@ -131,6 +132,30 @@ def build_registry(
 
     typer.echo(f"Wrote {index}")
     typer.echo(f"Wrote {matrix}")
+
+
+@registry_app.command("audit")
+def audit_registry_command(
+    manifest_dir: Annotated[Path, typer.Option("--manifest-dir")] = Path("manifests"),
+    timeout: Annotated[float, typer.Option("--timeout", min=0.1)] = 5.0,
+    skip_network: Annotated[bool, typer.Option("--skip-network")] = False,
+) -> None:
+    report = audit_registry(
+        manifest_dir,
+        check_urls=not skip_network,
+        timeout=timeout,
+    )
+    if not report.ok:
+        for issue in report.issues:
+            typer.echo(issue.format(), err=True)
+        raise typer.Exit(1)
+
+    if skip_network:
+        typer.echo(f"OK registry audit passed ({report.manifest_count} manifests, network skipped)")
+        return
+    typer.echo(
+        f"OK registry audit passed ({report.manifest_count} manifests, {report.url_count} URLs checked)"
+    )
 
 
 @route_app.command("explain")

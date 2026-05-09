@@ -39,6 +39,9 @@ jobs:
       - name: Check registry artifacts
         run: uv run timbregrid registry build --check
 
+      - name: Audit registry metadata
+        run: uv run timbregrid registry audit --timeout 5
+
       - name: Validate benchmark artifacts
         run: |
           for benchmark_dir in benchmarks/examples benchmarks/submissions; do

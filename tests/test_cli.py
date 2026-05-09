@@ -171,6 +171,14 @@ def test_registry_build_check_cli_detects_stale_artifacts(tmp_path: Path) -> Non
     assert "Registry artifacts are stale" in result.stderr
 
 
+def test_registry_audit_cli_can_skip_network() -> None:
+    result = CliRunner().invoke(app, ["registry", "audit", "--skip-network"])
+
+    assert result.exit_code == 0
+    assert "OK registry audit passed" in result.stdout
+    assert "network skipped" in result.stdout
+
+
 def test_route_explain_cli_writes_json(monkeypatch) -> None:
     monkeypatch.setattr("timbregrid.registry.importlib.util.find_spec", lambda _: None)
 

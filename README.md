@@ -102,7 +102,7 @@ Not included yet:
 
 - Chatterbox or Qwen3-TTS inference adapters.
 - SQLite voice metadata storage or custom voice synthesis.
-- PyPI publishing.
+- PyPI publishing. A manual workflow and runbook exist, but package metadata still needs a PyPI-compatible KittenTTS install path.
 - SSE audio streaming.
 - Pipecat or LiveKit integration examples; Open WebUI is currently a docs-only TTS guide.
 
@@ -124,6 +124,7 @@ Regenerate and check them with:
 ```bash
 uv run timbregrid registry build
 uv run timbregrid registry build --check
+uv run timbregrid registry audit
 ```
 
 Known model entries:
@@ -268,6 +269,10 @@ TimbreGrid can be used as a local OpenAI-compatible TTS backend for tools that c
 
 Integration examples are intentionally narrow until streaming and broader gateway compatibility stabilize.
 
+## Release Status
+
+The alpha release path publishes GitHub release assets, a hosted registry, and a lightweight GHCR image. Maintainer notes live in [`docs/release-runbook.md`](docs/release-runbook.md). PyPI publishing is tracked separately in [`docs/pypi-publishing.md`](docs/pypi-publishing.md) because the current KittenTTS install path uses a direct wheel URL that is not valid for PyPI package metadata.
+
 ## Docker
 
 Run the published alpha image:
@@ -321,7 +326,7 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase 0: Spec-first planning | complete | Manifest schema, speech models, benchmark suites, conformance cases, example manifests. |
 | Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and Kokoro/KittenTTS Apple Silicon artifacts exist; broader hardware coverage still needs contributors. |
 | Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro and KittenTTS adapters, Docker smoke path, and benchmark-aware routing work; expressive/cloning adapters are next. |
-| Phase 3: Community registry | partial | Local registry, generated support matrix, release assets, hosted latest registry, PR/issue templates, and CI checks exist; link/checksum validation and broader install smoke coverage remain. |
+| Phase 3: Community registry | partial | Local registry, generated support matrix, release assets, hosted latest registry, PR/issue templates, registry metadata audit, and CI checks exist; checksum validation and broader install smoke coverage remain. |
 | Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, and synthesis-time voice checks exist; integration examples remain. |
 
 Near-term next work:
@@ -329,16 +334,23 @@ Near-term next work:
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Add more OpenAI-compatible integration examples after the Open WebUI path is stable.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
-- Harden upstream metadata checks, optional install smoke coverage, and PyPI publishing readiness.
+- Harden checksum metadata, optional install smoke coverage, and PyPI publishing readiness.
 
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md). Manifest, benchmark, conformance, and adapter contributions are welcome.
 
+Focused contribution guides:
+
+- [`docs/manifest-contributions.md`](docs/manifest-contributions.md)
+- [`docs/benchmark-submissions.md`](docs/benchmark-submissions.md)
+- [`docs/adapter-contributions.md`](docs/adapter-contributions.md)
+
 Before opening a PR, run:
 
 ```bash
 uv run pytest
+uv run timbregrid registry audit
 uv run timbregrid registry build --check
 for benchmark in benchmarks/examples/*.json; do uv run timbregrid bench validate "$benchmark"; done
 for benchmark in benchmarks/submissions/*.json; do uv run timbregrid bench validate "$benchmark"; done

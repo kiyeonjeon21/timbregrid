@@ -10,6 +10,13 @@ Deterministic fake examples live in `benchmarks/examples`. Real hardware submiss
 
 Use `--hardware-profile <profile>` when the result should be compared for routing or documentation. Common profiles are `apple-silicon`, `cpu`, `cuda`, and `generic-ci`.
 
+Prefer specific profiles when they make results easier to compare without overstating them:
+
+- `apple-silicon`: contributor Apple Silicon runs where the exact chip is captured in `hardware`.
+- `cpu`: general CPU-only runs when no more specific profile is agreed.
+- `cuda`: CUDA runs where GPU details are captured in `hardware`.
+- `generic-ci`: deterministic smoke data from CI or fake adapters.
+
 Before opening a PR, validate each file:
 
 ```bash
@@ -24,5 +31,11 @@ Submission checklist:
 - Keep aggregate metrics consistent with the per-prompt `runs` entries; validation recomputes run counts, failures, failure rate, averages, and peak memory.
 - Include hardware metadata from the benchmark CLI with a stable `hardware.profile` such as `apple-silicon`, `cpu`, `cuda`, or a more specific project-approved profile.
 - Name files as `<model-id>.<suite-id>.<hardware-profile>.json`, replacing characters that are awkward in filenames with `-`.
+
+Example PR contents for a real benchmark submission:
+
+- `benchmarks/submissions/kokoro-82m.realtime-agent.apple-silicon.json`
+- a short PR note with OS, Python version, model install path, and whether the model was already cached;
+- no generated audio, model weights, local cache paths, or private prompt data.
 
 Do not submit fabricated Apple Silicon, CPU, or CUDA results. If the run used the fake adapter or synthetic data, label it as an example and do not present it as hardware performance evidence.
