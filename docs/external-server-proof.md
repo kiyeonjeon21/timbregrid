@@ -59,13 +59,15 @@ uvx --from timbregrid==0.1.0a2 timbregrid doctor "$SPEACHES_BASE_URL/v1" \
 
 From a TimbreGrid source checkout, `uv run timbregrid doctor ...` is equivalent.
 
-Expected shape:
+Expected demo signal:
 
 ```text
-OK doctor: 11/11 conformance cases passed
+Wrote demo-assets/speaches-doctor.json
 open_webui_tts: ready - basic OpenAI-compatible /v1/audio/speech request returned audio
 pipecat_openai_tts: likely_ready - OpenAI-style speech request, speed, and instructions fields passed basic checks
 ```
+
+Speaches versions may still fail stricter full-conformance cases around OpenAI-shaped error bodies or SSE `stream_format`. The readiness lines are the important preflight signal for basic OpenAI-compatible TTS usage; failed cases should remain visible and should not be hidden.
 
 If the result fails, inspect the underlying cases:
 

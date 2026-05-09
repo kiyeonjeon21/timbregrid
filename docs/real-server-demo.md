@@ -60,13 +60,15 @@ uvx --from timbregrid==0.1.0a2 timbregrid doctor "$SPEACHES_BASE_URL/v1" \
   --output demo-assets/speaches-doctor.json
 ```
 
-Expected successful shape:
+Expected demo signal:
 
 ```text
-OK doctor: 11/11 conformance cases passed
+Wrote demo-assets/speaches-doctor.json
 open_webui_tts: ready - basic OpenAI-compatible /v1/audio/speech request returned audio
 pipecat_openai_tts: likely_ready - OpenAI-style speech request, speed, and instructions fields passed basic checks
 ```
+
+Speaches versions may still fail stricter full-conformance cases around OpenAI-shaped error bodies or SSE `stream_format`. The key demo signal is that the selected model, voice, and response format are ready for a basic Open WebUI-style TTS request, while any failed full-conformance cases remain visible for triage.
 
 If the report fails, inspect the failing cases before changing client settings:
 
