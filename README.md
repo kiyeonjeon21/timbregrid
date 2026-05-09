@@ -445,34 +445,34 @@ Initial implementation should prefer **FastAPI** because the model wrappers and 
 
 ### Phase 0: Spec-First Planning
 
-- [ ] define `timbregrid.model.yaml` manifest schema;
-- [ ] define `SpeechRequest`, `SpeechResult`, `Capabilities`, and `VoiceInfo`;
-- [ ] define benchmark prompt suites: realtime-agent, narration, multilingual, cloning, dialogue;
-- [ ] define OpenAI speech conformance cases;
-- [ ] create example manifests for Kokoro, KittenTTS, Chatterbox, Qwen3-TTS.
+- [x] define `timbregrid.model.yaml` manifest schema;
+- [x] define `SpeechRequest`, `SpeechResult`, `Capabilities`, and `VoiceInfo`;
+- [ ] define benchmark prompt suites: realtime-agent, narration, multilingual, cloning, dialogue (partial: `realtime-agent` exists);
+- [x] define OpenAI speech conformance cases;
+- [ ] create example manifests for Kokoro, KittenTTS, Chatterbox, Qwen3-TTS (partial: `fake:tts` and `kokoro:82m` exist).
 
 ### Phase 1: Useful OSS Before Runtime
 
-- [ ] `timbregrid manifest validate`;
-- [ ] `timbregrid bench` against a local adapter;
-- [ ] `timbregrid conformance` against an existing OpenAI-compatible TTS server;
+- [x] `timbregrid manifest validate`;
+- [x] `timbregrid bench` against a local adapter;
+- [x] `timbregrid conformance` against an existing OpenAI-compatible TTS server;
 - [ ] publish raw benchmark JSON examples for Apple Silicon, CPU, and CUDA where available;
-- [ ] document how other servers can use the tests.
+- [ ] document how other servers can use the tests (partial: JSON conformance reports are implemented).
 
 ### Phase 2: Reference Gateway MVP
 
-- [ ] `POST /v1/audio/speech` compatible endpoint;
-- [ ] Kokoro adapter as the first fast baseline;
+- [x] `POST /v1/audio/speech` compatible endpoint;
+- [x] Kokoro adapter as the first fast baseline (optional `timbregrid[kokoro]`);
 - [ ] KittenTTS adapter for edge/CPU lane;
 - [ ] one expressive or cloning backend: Chatterbox or Qwen3-TTS;
-- [ ] `model="auto"` routing by purpose, hardware, license policy, and benchmark data;
+- [ ] `model="auto"` routing by purpose, hardware, license policy, and benchmark data (partial: `auto` resolves to the serve default);
 - [ ] Docker image with one-command local serving.
 
 ### Phase 3: Community Registry
 
 - [ ] hosted static registry index;
 - [ ] manifest PR template;
-- [ ] CI validation for manifest schema, links, checksums, licenses, and install smoke tests;
+- [ ] CI validation for manifest schema, links, checksums, licenses, and install smoke tests (partial: tests, manifest validation, and fake benchmark smoke run in CI);
 - [ ] model support matrix generated from manifests;
 - [ ] benchmark result submission format.
 
@@ -488,10 +488,17 @@ Initial implementation should prefer **FastAPI** because the model wrappers and 
 The first public milestone should be small, testable, and useful outside this repo:
 
 ```bash
-timbregrid manifest validate manifests/kokoro-82m.yaml
-timbregrid bench kokoro:82m --suite realtime-agent --output kokoro.json
-timbregrid conformance http://localhost:8889/v1 --endpoint audio.speech
-timbregrid serve --model kokoro:82m --port 8889
+uv sync --extra kokoro
+uv run timbregrid models inspect kokoro:82m
+uv run timbregrid manifest validate manifests/kokoro-82m.yaml
+uv run timbregrid bench kokoro:82m --suite realtime-agent --output kokoro.json
+uv run timbregrid serve --model kokoro:82m --port 8889
+uv run timbregrid conformance http://localhost:8889/v1 \
+  --endpoint audio.speech \
+  --model kokoro:82m \
+  --voice af_heart \
+  --response-format wav \
+  --output kokoro-conformance.json
 ```
 
 Success means:
@@ -501,6 +508,13 @@ Success means:
 - the benchmark output is reproducible;
 - another TTS server could run the same conformance tests;
 - the project has value before adding five more models.
+
+## Next Milestones
+
+1. **Docker + install docs**: provide a one-command fake gateway container and documented Kokoro host setup.
+2. **Registry index + support matrix**: generate a static model index and support matrix from manifests.
+3. **Routing policy**: make `model="auto"` choose adapters by purpose, hardware, license policy, and benchmark data.
+4. **Voice provenance**: add local voice records, consent metadata, and `/v1/audio/voices`.
 
 ## Technical Choices
 
