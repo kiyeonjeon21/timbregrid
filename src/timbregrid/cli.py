@@ -10,6 +10,7 @@ import typer
 from timbregrid.bench import run_benchmark, write_benchmark
 from timbregrid.benchmark_store import BenchmarkStoreError, validate_benchmark_result
 from timbregrid.conformance import run_conformance, write_conformance_report
+from timbregrid.doctor import run_doctor, write_doctor_report
 from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
 from timbregrid.models import SpeechRequest
@@ -230,6 +231,52 @@ def conformance(
     for failure in result.failures:
         typer.echo(f"FAIL {failure}", err=True)
     raise typer.Exit(1)
+
+
+@app.command()
+def doctor(
+    base_url: Annotated[str, typer.Argument()],
+    endpoint: Annotated[str, typer.Option("--endpoint")] = "audio.speech",
+    model: Annotated[str, typer.Option("--model")] = "fake:tts",
+    voice: Annotated[str, typer.Option("--voice")] = "alloy",
+    response_format: Annotated[str, typer.Option("--response-format")] = "wav",
+    timeout: Annotated[float, typer.Option("--timeout")] = 10.0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    try:
+        result = run_doctor(
+            base_url,
+            endpoint=endpoint,
+            model=model,
+            voice=voice,
+            response_format=response_format,
+            timeout=timeout,
+        )
+    except Exception as exc:
+        typer.echo(f"Doctor failed: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    if output is not None:
+        write_doctor_report(result, output)
+        typer.echo(f"Wrote {output}")
+
+    if result.ok:
+        typer.echo(
+            f"OK doctor: {result.summary['passed']}/{result.summary['total']} conformance cases passed"
+        )
+    else:
+        typer.echo(
+            f"FAIL doctor: {result.summary['passed']}/{result.summary['total']} conformance cases passed",
+            err=True,
+        )
+
+    for name, readiness in result.integration_readiness.items():
+        typer.echo(f"{name}: {readiness.status} - {readiness.reason}")
+
+    if not result.ok:
+        for failure in result.conformance.failures:
+            typer.echo(f"FAIL {failure}", err=True)
+        raise typer.Exit(1)
 
 
 @app.command()

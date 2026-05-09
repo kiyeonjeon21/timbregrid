@@ -5,6 +5,7 @@ from typer.testing import CliRunner
 
 from timbregrid.cli import app, resolve_serve_config
 from timbregrid.conformance import ConformanceCaseResult, ConformanceReport
+from timbregrid.doctor import build_doctor_report
 
 
 def test_manifest_validate_cli() -> None:
@@ -353,6 +354,43 @@ def test_conformance_cli_returns_failure_exit_code(monkeypatch) -> None:
     assert "FAIL broken: expected HTTP 200" in result.stderr
 
 
+def test_doctor_cli_writes_json_report(tmp_path: Path, monkeypatch) -> None:
+    output = tmp_path / "doctor.json"
+
+    monkeypatch.setattr("timbregrid.cli.run_doctor", lambda *_, **__: _doctor_report(failed=False))
+    result = CliRunner().invoke(
+        app,
+        [
+            "doctor",
+            "http://example.test/v1",
+            "--model",
+            "fake:tts",
+            "--voice",
+            "alloy",
+            "--response-format",
+            "wav",
+            "--output",
+            str(output),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "OK doctor: 3/3 conformance cases passed" in result.stdout
+    assert "open_webui_tts: ready" in result.stdout
+    body = json.loads(output.read_text(encoding="utf-8"))
+    assert body["schema_version"] == "0.1"
+    assert body["integration_readiness"]["open_webui_tts"]["status"] == "ready"
+
+
+def test_doctor_cli_returns_failure_exit_code(monkeypatch) -> None:
+    monkeypatch.setattr("timbregrid.cli.run_doctor", lambda *_, **__: _doctor_report(failed=True))
+    result = CliRunner().invoke(app, ["doctor", "http://example.test/v1"])
+
+    assert result.exit_code == 1
+    assert "FAIL doctor: 2/3 conformance cases passed" in result.stderr
+    assert "FAIL required fields with response_format: expected HTTP 200" in result.stderr
+
+
 def _report(*, failed: int) -> ConformanceReport:
     case = ConformanceCaseResult(
         name="broken" if failed else "ok",
@@ -373,4 +411,56 @@ def _report(*, failed: int) -> ConformanceReport:
         config={"model": "fake:tts", "voice": "alloy", "response_format": "wav", "timeout": 10},
         summary={"total": 1, "passed": 0 if failed else 1, "failed": failed, "failure_rate": failed},
         cases=[case],
+    )
+
+
+def _doctor_report(*, failed: bool):
+    required = ConformanceCaseResult(
+        name="required fields with response_format",
+        passed=not failed,
+        expectation="success",
+        request_payload={"model": "fake:tts", "input": "hello", "voice": "alloy"},
+        status_code=500 if failed else 200,
+        content_type="application/json" if failed else "audio/wav",
+        content_length=0 if failed else 10,
+        elapsed_ms=1.0,
+        response_kind="json" if failed else "audio",
+        failure="expected HTTP 200, got 500" if failed else None,
+    )
+    cases = [
+        required,
+        _doctor_case("speed field"),
+        _doctor_case("instructions field"),
+    ]
+    passed = sum(1 for case in cases if case.passed)
+    failed_count = len(cases) - passed
+    return build_doctor_report(
+        ConformanceReport(
+            schema_version="0.1",
+            created_at="2026-05-09T00:00:00+00:00",
+            base_url="http://example.test/v1",
+            endpoint="audio.speech",
+            config={"model": "fake:tts", "voice": "alloy", "response_format": "wav", "timeout": 10},
+            summary={
+                "total": len(cases),
+                "passed": passed,
+                "failed": failed_count,
+                "failure_rate": failed_count / len(cases),
+            },
+            cases=cases,
+        )
+    )
+
+
+def _doctor_case(name: str) -> ConformanceCaseResult:
+    return ConformanceCaseResult(
+        name=name,
+        passed=True,
+        expectation="success",
+        request_payload={"model": "fake:tts", "input": "hello", "voice": "alloy"},
+        status_code=200,
+        content_type="audio/wav",
+        content_length=10,
+        elapsed_ms=1.0,
+        response_kind="audio",
     )

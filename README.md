@@ -2,15 +2,16 @@
 
 [![CI](https://github.com/kiyeonjeon21/timbregrid/actions/workflows/ci.yml/badge.svg)](https://github.com/kiyeonjeon21/timbregrid/actions/workflows/ci.yml)
 
-TimbreGrid is a local-first compatibility and evaluation layer for open-source text-to-speech systems.
+TimbreGrid is a local-first compatibility, evaluation, and routing layer for OpenAI-compatible open-source text-to-speech systems.
 
-Open-source TTS has many promising models, but comparing them is still awkward: every project has different install steps, voice names, audio formats, runtime assumptions, and benchmark claims. TimbreGrid makes those pieces explicit through manifests, raw benchmark JSON, conformance checks, routing policy, and a small OpenAI-compatible `/v1/audio/speech` gateway.
+Open-source TTS has many promising models and servers, but comparing and integrating them is still awkward: every project has different install steps, voice names, audio formats, runtime assumptions, and benchmark claims. TimbreGrid makes those pieces explicit through manifests, raw benchmark JSON, conformance checks, diagnostic reports, routing policy, and a small reference `/v1/audio/speech` gateway.
 
-**Status**: early MVP. The fake gateway, manifest registry, benchmark CLI, conformance suite, benchmark validation, optional Kokoro adapter, and optional KittenTTS adapter are implemented. Chatterbox and Qwen3-TTS are currently manifest-only examples.
+**Status**: early MVP. The fake gateway, manifest registry, diagnostic CLI, benchmark CLI, conformance suite, benchmark validation, optional Kokoro adapter, and optional KittenTTS adapter are implemented. Chatterbox and Qwen3-TTS are currently manifest-only examples.
 
 Use TimbreGrid when you want to:
 
-- run a local OSS TTS model behind an OpenAI-compatible speech endpoint;
+- diagnose whether an OpenAI-compatible TTS server behaves well enough for basic `/v1/audio/speech` usage;
+- run a local OSS TTS model behind a reference OpenAI-compatible speech endpoint;
 - compare adapters with reviewable raw benchmark output instead of hand-written summary tables;
 - describe model capabilities, licenses, voices, formats, and runtime requirements in validated manifests;
 - test another TTS server's basic OpenAI-compatible speech behavior;
@@ -21,6 +22,7 @@ Use TimbreGrid when you want to:
 
 | Area | What works now |
 |---|---|
+| Diagnostics | `timbregrid doctor` produces a compatibility report for any OpenAI-compatible `/v1/audio/speech` server. |
 | Runtime | `fake:tts`, optional `kokoro:82m`, and optional `kitten-tts:nano-0.8` can serve `POST /v1/audio/speech`. |
 | Evaluation | Benchmark suites emit raw JSON and validation recomputes counts, failures, latency averages, memory, and prompt coverage. |
 | Compatibility | Basic OpenAI-compatible speech conformance checks and Python OpenAI SDK compatibility tests are included. |
@@ -92,6 +94,7 @@ curl http://localhost:8889/v1/audio/speech \
 - Generate a static registry index and support matrix from manifests.
 - Run fake-adapter benchmark suites and write raw JSON output.
 - Validate benchmark JSON examples and submissions for model ids, suites, hardware profiles, prompts, and aggregate metrics.
+- Produce a basic compatibility diagnosis for an OpenAI-compatible TTS server with `timbregrid doctor`.
 - Run basic OpenAI-compatible speech conformance checks.
 - Serve `POST /v1/audio/speech` for `fake:tts`.
 - Expose builtin and local voice metadata through `GET /v1/audio/voices` and enforce known voice metadata during synthesis.
@@ -193,7 +196,19 @@ TIMBREGRID_OUTPUT=/tmp/kokoro-sdk.wav \
 uv run python examples/openai_sdk_speech.py
 ```
 
-## Conformance Tests
+## Doctor And Conformance
+
+For a user-facing diagnosis of a TTS server, run:
+
+```bash
+uv run timbregrid doctor http://localhost:8889/v1 \
+  --model fake:tts \
+  --voice alloy \
+  --response-format wav \
+  --output doctor.json
+```
+
+The doctor command wraps conformance results into a compatibility report for basic Open WebUI-style and Pipecat OpenAI TTS-style readiness. It is not a full integration certification.
 
 Run conformance checks against any OpenAI-compatible TTS server:
 
@@ -206,7 +221,7 @@ uv run timbregrid conformance http://localhost:8889/v1 \
   --output conformance.json
 ```
 
-See [`docs/conformance.md`](docs/conformance.md).
+See [`docs/doctor.md`](docs/doctor.md) and [`docs/conformance.md`](docs/conformance.md).
 
 ## Routing
 
@@ -336,7 +351,7 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 Near-term next work:
 
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
-- Add more OpenAI-compatible integration examples after the Open WebUI path is stable.
+- Use `timbregrid doctor` reports to harden Open WebUI, Pipecat, and LiveKit integration examples.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
 - Harden checksum metadata, optional install smoke coverage, and PyPI publishing readiness.
 

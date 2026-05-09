@@ -2,6 +2,8 @@
 
 TimbreGrid conformance checks let any OpenAI-compatible TTS server verify basic `/v1/audio/speech` behavior.
 
+Use `timbregrid doctor` when you want a concise human-readable diagnosis. Use `timbregrid conformance` when you want a strict pass/fail compatibility suite.
+
 Start a compatible server, then run:
 
 ```bash

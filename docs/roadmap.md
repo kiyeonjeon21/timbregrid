@@ -21,6 +21,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add `timbregrid bench` against a local adapter.
 - [x] Add benchmark submission validation for model ids, suites, hardware profiles, prompts, run fields, and aggregate metrics.
 - [x] Add `timbregrid conformance` for existing OpenAI-compatible TTS servers.
+- [x] Add `timbregrid doctor` for user-facing compatibility diagnosis built on conformance results.
 - [x] Document how other servers can use the benchmark and conformance tests.
 - [ ] Publish real raw benchmark JSON examples for Apple Silicon, CPU, and CUDA where available.
   - Partial: deterministic fake benchmark examples, validation paths, and Kokoro/KittenTTS Apple Silicon submissions exist.
@@ -60,7 +61,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
 - [x] Add a direct OpenAI SDK usage example beyond compatibility tests.
 - [ ] Add integration examples for Open WebUI, Pipecat, and LiveKit.
-  - Partial: an Open WebUI TTS integration guide and Kokoro real-audio demo guide exist.
+  - Partial: an Open WebUI TTS integration guide, Kokoro real-audio demo guide, and doctor readiness report exist.
 - [ ] Add a WebUI for A/B tests, latency views, and voice preview only after the CLI/gateway contracts stabilize.
 
 ## First Milestone
@@ -97,7 +98,7 @@ Success means:
 1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro, KittenTTS, and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
 2. **Expressive/cloning adapter**: add Chatterbox or a similar backend behind optional dependencies, using the existing voice governance checks.
 3. **Registry hardening**: add checksum metadata checks, broader optional install smoke coverage, and complete PyPI publishing readiness after the KittenTTS dependency metadata path is resolved.
-4. **Integration examples**: harden the Open WebUI guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
+4. **Integration examples**: use doctor reports to harden the Open WebUI guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
 
 ## Technical Choices
 
