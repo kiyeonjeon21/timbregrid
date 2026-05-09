@@ -50,9 +50,9 @@ Roadmap status is conservative: an item is complete only when the implementation
 
 ## Phase 4: Voice Governance And Integrations
 
-- [ ] Add local voice records.
-- [ ] Add consent metadata and provenance fields for custom/cloned voices.
-- [ ] Add `GET /v1/audio/voices`.
+- [x] Add local voice records.
+- [x] Add consent metadata and provenance fields for custom/cloned voices.
+- [x] Add `GET /v1/audio/voices`.
 - [ ] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
 - [x] Add a direct OpenAI SDK usage example beyond compatibility tests.
 - [ ] Add integration examples for Open WebUI, Pipecat, and LiveKit.
@@ -91,7 +91,7 @@ Success means:
 
 1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
 2. **KittenTTS edge adapter**: add the first lightweight CPU-focused adapter without adding heavy dependencies to the default install path.
-3. **Voice metadata foundation**: add local voice records, consent metadata, and `/v1/audio/voices` before treating cloning adapters as a mainline feature.
+3. **Voice governance enforcement**: add synthesis-time consent/provenance checks before treating cloning adapters as a mainline feature.
 4. **Integration examples**: add Open WebUI, Pipecat, and LiveKit docs or examples after the direct OpenAI SDK example.
 
 ## Technical Choices

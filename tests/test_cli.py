@@ -261,12 +261,14 @@ def test_resolve_serve_config_defaults(monkeypatch) -> None:
     monkeypatch.delenv("TIMBREGRID_HOST", raising=False)
     monkeypatch.delenv("TIMBREGRID_PORT", raising=False)
     monkeypatch.delenv("TIMBREGRID_BENCHMARK_DIR", raising=False)
+    monkeypatch.delenv("TIMBREGRID_VOICE_CATALOG", raising=False)
 
     assert resolve_serve_config() == (
         "fake:tts",
         "127.0.0.1",
         8889,
         Path("benchmarks/examples"),
+        None,
     )
 
 
@@ -275,12 +277,14 @@ def test_resolve_serve_config_uses_env(monkeypatch) -> None:
     monkeypatch.setenv("TIMBREGRID_HOST", "0.0.0.0")
     monkeypatch.setenv("TIMBREGRID_PORT", "9999")
     monkeypatch.setenv("TIMBREGRID_BENCHMARK_DIR", "benchmarks/custom")
+    monkeypatch.setenv("TIMBREGRID_VOICE_CATALOG", "voices/custom.json")
 
     assert resolve_serve_config() == (
         "kokoro:82m",
         "0.0.0.0",
         9999,
         Path("benchmarks/custom"),
+        Path("voices/custom.json"),
     )
 
 
@@ -289,17 +293,20 @@ def test_resolve_serve_config_prefers_arguments(monkeypatch) -> None:
     monkeypatch.setenv("TIMBREGRID_HOST", "0.0.0.0")
     monkeypatch.setenv("TIMBREGRID_PORT", "9999")
     monkeypatch.setenv("TIMBREGRID_BENCHMARK_DIR", "benchmarks/custom")
+    monkeypatch.setenv("TIMBREGRID_VOICE_CATALOG", "voices/custom.json")
 
     assert resolve_serve_config(
         "fake:tts",
         "127.0.0.1",
         7777,
         Path("benchmarks/args"),
+        Path("voices/args.json"),
     ) == (
         "fake:tts",
         "127.0.0.1",
         7777,
         Path("benchmarks/args"),
+        Path("voices/args.json"),
     )
 
 

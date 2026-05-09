@@ -8,6 +8,7 @@ from typing import Callable
 from timbregrid.adapters.base import TTSAdapter
 from timbregrid.adapters.fake import FakeTTSAdapter
 from timbregrid.adapters.kokoro import KokoroAdapter
+from timbregrid.models import VoiceInfo
 
 
 @dataclass(frozen=True)
@@ -111,3 +112,26 @@ def get_adapter(model: str) -> TTSAdapter:
 
 def default_adapter() -> TTSAdapter:
     return _FAKE_ADAPTER
+
+
+def list_model_voices(model: str | None = None) -> list[VoiceInfo]:
+    entries = [get_model_entry(model)] if model is not None else list_models()
+    voices: list[VoiceInfo] = []
+
+    for entry in entries:
+        if entry.adapter_factory is None:
+            continue
+        for voice in entry.adapter_factory().voices():
+            voices.append(_voice_for_model(voice, entry.id))
+
+    return voices
+
+
+def _voice_for_model(voice: VoiceInfo, model: str) -> VoiceInfo:
+    return voice.model_copy(
+        update={
+            "model": voice.model or model,
+            "source": voice.source or "builtin",
+            "consent": voice.consent or "not_required",
+        }
+    )

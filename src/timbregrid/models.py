@@ -9,6 +9,8 @@ AudioFormat = Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]
 SupportedFakeFormat = Literal["mp3", "wav", "pcm"]
 RoutingPurpose = Literal["realtime", "narration", "cloning", "dialogue", "edge", "multilingual"]
 LicensePolicy = Literal["any", "commercial_ok", "permissive_only", "research_only"]
+VoiceSource = Literal["builtin", "local", "custom"]
+VoiceConsent = Literal["not_required", "granted", "unknown"]
 
 
 class Acceleration(BaseModel):
@@ -85,11 +87,15 @@ class ModelManifest(BaseModel):
 class VoiceInfo(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    id: str
-    name: str
+    id: Annotated[str, Field(min_length=1)]
+    name: Annotated[str, Field(min_length=1)]
+    model: Annotated[str | None, Field(min_length=1)] = None
     builtin: bool = True
     language: str | None = None
     tags: list[str] = Field(default_factory=list)
+    source: VoiceSource = "builtin"
+    provenance: str | None = None
+    consent: VoiceConsent = "not_required"
 
 
 class SpeechRequest(BaseModel):

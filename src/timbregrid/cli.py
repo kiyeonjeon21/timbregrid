@@ -20,6 +20,7 @@ from timbregrid.registry_index import (
     write_registry_artifacts,
 )
 from timbregrid.routing import RouteNotFound, resolve_route
+from timbregrid.voices import VoiceCatalogError
 
 
 app = typer.Typer(help="TimbreGrid compatibility and evaluation tools.")
@@ -212,22 +213,40 @@ def serve(
     host: Annotated[str | None, typer.Option("--host")] = None,
     port: Annotated[int | None, typer.Option("--port")] = None,
     benchmark_dir: Annotated[Path | None, typer.Option("--benchmark-dir")] = None,
+    voice_catalog: Annotated[Path | None, typer.Option("--voice-catalog")] = None,
 ) -> None:
     import uvicorn
 
     try:
-        resolved_model, resolved_host, resolved_port, resolved_benchmark_dir = resolve_serve_config(
+        (
+            resolved_model,
+            resolved_host,
+            resolved_port,
+            resolved_benchmark_dir,
+            resolved_voice_catalog,
+        ) = resolve_serve_config(
             model,
             host,
             port,
             benchmark_dir,
+            voice_catalog,
         )
     except ValueError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
 
+    try:
+        app_instance = create_app(
+            default_model=resolved_model,
+            benchmark_dir=resolved_benchmark_dir,
+            voice_catalog=resolved_voice_catalog,
+        )
+    except VoiceCatalogError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
     uvicorn.run(
-        create_app(default_model=resolved_model, benchmark_dir=resolved_benchmark_dir),
+        app_instance,
         host=resolved_host,
         port=resolved_port,
     )
@@ -238,12 +257,14 @@ def resolve_serve_config(
     host: str | None = None,
     port: int | None = None,
     benchmark_dir: Path | None = None,
-) -> tuple[str, str, int, Path | None]:
+    voice_catalog: Path | None = None,
+) -> tuple[str, str, int, Path | None, Path | None]:
     resolved_model = model or os.environ.get("TIMBREGRID_MODEL") or "fake:tts"
     resolved_host = host or os.environ.get("TIMBREGRID_HOST") or "127.0.0.1"
     resolved_port = port if port is not None else _env_port()
     resolved_benchmark_dir = benchmark_dir if benchmark_dir is not None else _env_benchmark_dir()
-    return resolved_model, resolved_host, resolved_port, resolved_benchmark_dir
+    resolved_voice_catalog = voice_catalog if voice_catalog is not None else _env_voice_catalog()
+    return resolved_model, resolved_host, resolved_port, resolved_benchmark_dir, resolved_voice_catalog
 
 
 def _env_port() -> int:
@@ -264,6 +285,13 @@ def _env_benchmark_dir() -> Path | None:
     if raw is None:
         return Path("benchmarks/examples")
     if raw == "":
+        return None
+    return Path(raw)
+
+
+def _env_voice_catalog() -> Path | None:
+    raw = os.environ.get("TIMBREGRID_VOICE_CATALOG")
+    if raw is None or raw == "":
         return None
     return Path(raw)
 

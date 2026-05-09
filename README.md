@@ -51,6 +51,7 @@ The fake adapter generates deterministic local audio bytes without downloading m
 - Validate benchmark JSON examples and submissions for model ids, suites, hardware profiles, prompts, and aggregate metrics.
 - Run basic OpenAI-compatible speech conformance checks.
 - Serve `POST /v1/audio/speech` for `fake:tts`.
+- Expose builtin and local voice metadata through `GET /v1/audio/voices`.
 - Verify Python OpenAI SDK compatibility and run a direct SDK example against the local gateway.
 - Route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy.
 - Run `kokoro:82m` when optional Kokoro dependencies and `espeak-ng` are installed.
@@ -58,7 +59,7 @@ The fake adapter generates deterministic local audio bytes without downloading m
 Not included yet:
 
 - KittenTTS, Chatterbox, or Qwen3-TTS inference adapters.
-- SQLite voice metadata storage or provenance enforcement.
+- SQLite voice metadata storage, custom voice synthesis, or synthesis-time provenance enforcement.
 - Hosted registry publishing.
 - SSE audio streaming.
 - Open WebUI, Pipecat, or LiveKit integration examples.
@@ -162,6 +163,22 @@ uv run timbregrid route explain \
 
 If matching benchmark data is missing, routing falls back to manifest capabilities and model availability.
 
+## Voice Metadata
+
+List builtin voices and local voice records:
+
+```bash
+curl "http://localhost:8889/v1/audio/voices?model=fake:tts"
+```
+
+Local voice records can be supplied as JSON without committing private assets:
+
+```bash
+TIMBREGRID_VOICE_CATALOG=/path/to/voices.json uv run timbregrid serve
+```
+
+Custom or local voices must set `builtin=false`, set `source` to `local` or `custom`, include `consent="granted"`, and provide a non-empty `provenance` value. TimbreGrid exposes these records for governance and discovery; it does not synthesize cloned voices yet.
+
 ## Docker
 
 Run the fake gateway container:
@@ -210,13 +227,13 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and one Kokoro Apple Silicon artifact exist; broader hardware coverage still needs contributors. |
 | Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro adapter, Docker smoke path, and benchmark-aware routing work; KittenTTS and expressive/cloning adapters are next. |
 | Phase 3: Community registry | partial | Local registry, generated support matrix, PR/issue templates, and CI checks exist; hosted registry, link/checksum validation, and install smoke coverage remain. |
-| Phase 4: Voice governance and integrations | not started | Voice records, consent/provenance enforcement, `/v1/audio/voices`, and integration examples remain. |
+| Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, and `/v1/audio/voices` exist; synthesis-time enforcement and integration examples remain. |
 
 Near-term next work:
 
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Implement a KittenTTS adapter for edge/CPU use.
-- Add local voice records, consent metadata, and `/v1/audio/voices`.
+- Add synthesis-time consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
 
 ## Contributing
 

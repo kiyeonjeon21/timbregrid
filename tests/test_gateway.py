@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from timbregrid.gateway import create_app
@@ -102,3 +105,62 @@ def test_speech_endpoint_rejects_sse_for_fake_model() -> None:
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "unsupported_stream_format"
+
+
+def test_voices_endpoint_returns_builtin_voice_metadata() -> None:
+    client = TestClient(create_app())
+
+    response = client.get("/v1/audio/voices", params={"model": "fake:tts"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["object"] == "list"
+    voices = {voice["id"]: voice for voice in body["data"]}
+    assert voices["alloy"]["model"] == "fake:tts"
+    assert voices["alloy"]["builtin"] is True
+    assert voices["alloy"]["source"] == "builtin"
+    assert voices["alloy"]["consent"] == "not_required"
+    assert voices["alloy"]["provenance"] is None
+
+
+def test_voices_endpoint_includes_local_catalog_records(tmp_path: Path) -> None:
+    catalog = tmp_path / "voices.json"
+    catalog.write_text(
+        json.dumps(
+            {
+                "voices": [
+                    {
+                        "id": "local_reference",
+                        "name": "Local Reference",
+                        "model": "fake:tts",
+                        "builtin": False,
+                        "source": "local",
+                        "language": "en-US",
+                        "tags": ["test"],
+                        "provenance": "Recorded by the repository owner for local testing.",
+                        "consent": "granted",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = TestClient(create_app(voice_catalog=catalog))
+
+    response = client.get("/v1/audio/voices", params={"model": "fake:tts"})
+
+    assert response.status_code == 200
+    voices = {voice["id"]: voice for voice in response.json()["data"]}
+    assert voices["local_reference"]["model"] == "fake:tts"
+    assert voices["local_reference"]["builtin"] is False
+    assert voices["local_reference"]["source"] == "local"
+    assert voices["local_reference"]["consent"] == "granted"
+
+
+def test_voices_endpoint_rejects_unknown_model() -> None:
+    client = TestClient(create_app())
+
+    response = client.get("/v1/audio/voices", params={"model": "missing:model"})
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "model_not_found"
