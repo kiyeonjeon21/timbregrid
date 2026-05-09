@@ -25,12 +25,14 @@ def run_benchmark(
     *,
     suite: str = "realtime-agent",
     response_format: str = "wav",
+    voice: str | None = None,
 ) -> BenchmarkResult:
     if suite not in PROMPT_SUITES:
         raise ValueError(f"Unknown benchmark suite: {suite}")
 
     adapter = get_adapter(model)
     adapter.load()
+    selected_voice = voice or _default_voice(adapter)
     runs: list[BenchmarkRun] = []
 
     for prompt in PROMPT_SUITES[suite]:
@@ -40,7 +42,7 @@ def run_benchmark(
             request = SpeechRequest(
                 model=model,
                 input=prompt,
-                voice="alloy",
+                voice=selected_voice,
                 response_format=response_format,
             )
             result = adapter.synthesize(request)
@@ -100,6 +102,11 @@ def _hardware_profile() -> dict[str, str]:
         "processor": platform.processor(),
         "python": platform.python_version(),
     }
+
+
+def _default_voice(adapter) -> str:
+    voices = adapter.voices()
+    return voices[0].id if voices else "alloy"
 
 
 def _aggregate_metrics(runs: list[BenchmarkRun]) -> dict[str, float | int]:

@@ -7,6 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import Response
 from pydantic import ValidationError
 
+from timbregrid.adapters.base import AdapterDependencyError
 from timbregrid.errors import openai_error
 from timbregrid.models import SpeechRequest
 from timbregrid.registry import get_adapter
@@ -59,11 +60,13 @@ def create_app(default_model: str = "fake:tts") -> FastAPI:
                 code="unsupported_response_format",
             )
 
+        selected_model = default_model if request.model == "auto" else request.model
+
         try:
-            adapter = get_adapter(request.model or default_model)
+            adapter = get_adapter(selected_model)
         except KeyError:
             return openai_error(
-                f"Model '{request.model}' was not found",
+                f"Model '{selected_model}' was not found",
                 status_code=404,
                 param="model",
                 code="model_not_found",
@@ -71,6 +74,13 @@ def create_app(default_model: str = "fake:tts") -> FastAPI:
 
         try:
             result = adapter.synthesize(request)
+        except AdapterDependencyError as exc:
+            return openai_error(
+                str(exc),
+                status_code=503,
+                param="model",
+                code="adapter_dependency_missing",
+            )
         except ValueError as exc:
             return openai_error(str(exc))
 

@@ -3,11 +3,11 @@
 > The open compatibility grid for synthetic speech.
 > Manifests, benchmarks, conformance tests, routing policy, provenance, and a reference OpenAI-compatible gateway for OSS TTS.
 
-**Status**: spec + mock MVP implementation  
+**Status**: spec + optional Kokoro adapter MVP implementation
 **Research snapshot**: 2026-05-09  
 **License (planned)**: MIT for TimbreGrid core; upstream model licenses are preserved per model manifest.
 
-This repository now includes the first spec-first CLI plus a reference OpenAI-compatible TTS gateway backed by a deterministic fake TTS adapter. Real model adapters such as Kokoro are intentionally out of scope for the first MVP.
+This repository now includes the first spec-first CLI plus a reference OpenAI-compatible TTS gateway backed by a deterministic fake TTS adapter. Kokoro support is available as an optional adapter.
 
 ## Current MVP Quickstart
 
@@ -46,15 +46,41 @@ Works today:
 - run a fake-adapter benchmark suite and write raw JSON output;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
 - run a speech conformance suite with per-case JSON reports against that endpoint;
-- verify Python OpenAI SDK compatibility against the local gateway.
+- verify Python OpenAI SDK compatibility against the local gateway;
+- optionally run `kokoro:82m` when `timbregrid[kokoro]` dependencies and `espeak-ng` are installed.
 
 Not included yet:
 
-- real Kokoro, KittenTTS, Chatterbox, or Qwen3-TTS inference adapters;
+- KittenTTS, Chatterbox, or Qwen3-TTS inference adapters;
 - Docker images, SQLite metadata storage, hosted registry, or voice provenance storage;
 - SSE audio streaming or long-form dialogue routing.
 
-`manifests/kokoro-82m.yaml` is included as a schema example only. It is not registered as an executable adapter in the current MVP.
+`manifests/kokoro-82m.yaml` is executable only when optional Kokoro dependencies are installed.
+
+### Optional Kokoro Adapter
+
+Install optional Kokoro dependencies:
+
+```bash
+uv sync --extra kokoro
+```
+
+Kokoro may also require the system `espeak-ng` package. On macOS:
+
+```bash
+brew install espeak-ng
+```
+
+Then run the first real-model milestone:
+
+```bash
+uv run timbregrid models inspect kokoro:82m
+uv run timbregrid manifest validate manifests/kokoro-82m.yaml
+uv run timbregrid bench kokoro:82m --suite realtime-agent --output /tmp/kokoro.json
+uv run timbregrid serve --model kokoro:82m --port 8889
+```
+
+Use `response_format="wav"` and a Kokoro voice such as `af_heart` when calling the gateway.
 
 ---
 

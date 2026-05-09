@@ -30,4 +30,4 @@ policy:
   requires_voice_consent: false
 notes:
   - "Good baseline for low-latency local TTS."
-  - "Manifest example only; the MVP does not include a Kokoro runtime adapter."
+  - "Executable through the optional timbregrid[kokoro] adapter."

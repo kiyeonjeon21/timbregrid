@@ -10,10 +10,12 @@ from timbregrid.bench import run_benchmark, write_benchmark
 from timbregrid.conformance import run_conformance, write_conformance_report
 from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
+from timbregrid.registry import get_model_entry, list_models
 
 
 app = typer.Typer(help="TimbreGrid compatibility and evaluation tools.")
 manifest_app = typer.Typer(help="Validate and inspect model manifests.")
+models_app = typer.Typer(help="List and inspect known TTS models.")
 
 
 @manifest_app.command("validate")
@@ -30,6 +32,7 @@ def validate_manifest(path: Annotated[Path, typer.Argument(exists=True, dir_okay
 def bench(
     model: Annotated[str, typer.Argument()],
     suite: Annotated[str, typer.Option("--suite")] = "realtime-agent",
+    voice: Annotated[str | None, typer.Option("--voice")] = None,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
     output_format: Annotated[str, typer.Option("--format")] = "json",
 ) -> None:
@@ -38,8 +41,8 @@ def bench(
         raise typer.Exit(1)
 
     try:
-        result = run_benchmark(model, suite=suite)
-    except (KeyError, ValueError) as exc:
+        result = run_benchmark(model, suite=suite, voice=voice)
+    except (KeyError, RuntimeError, ValueError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
 
@@ -48,6 +51,23 @@ def bench(
         typer.echo(f"Wrote {output}")
     else:
         typer.echo(json.dumps(result.model_dump(mode="json"), indent=2, sort_keys=True))
+
+
+@models_app.command("list")
+def list_known_models() -> None:
+    for model in list_models():
+        executable = "executable" if model.executable else "manifest-only"
+        typer.echo(f"{model.id}\t{executable}\t{model.status}")
+
+
+@models_app.command("inspect")
+def inspect_model(model: Annotated[str, typer.Argument()]) -> None:
+    try:
+        entry = get_model_entry(model)
+    except KeyError as exc:
+        typer.echo(f"Unknown model: {model}", err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(json.dumps(entry.to_dict(), indent=2, sort_keys=True))
 
 
 @app.command()
@@ -98,6 +118,7 @@ def serve(
 
 
 app.add_typer(manifest_app, name="manifest")
+app.add_typer(models_app, name="models")
 
 
 if __name__ == "__main__":

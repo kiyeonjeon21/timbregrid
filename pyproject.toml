@@ -13,6 +13,13 @@ dependencies = [
   "uvicorn[standard]>=0.30.0",
 ]
 
+[project.optional-dependencies]
+kokoro = [
+  "kokoro>=0.9.4",
+  "numpy>=1.26.0",
+  "soundfile>=0.12.1",
+]
+
 [project.scripts]
 timbregrid = "timbregrid.cli:app"
 

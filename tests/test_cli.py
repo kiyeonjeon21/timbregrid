@@ -31,6 +31,24 @@ def test_bench_cli_writes_json(tmp_path: Path) -> None:
     assert body["metrics"]["failures"] == 0
 
 
+def test_models_list_cli_includes_fake_and_kokoro() -> None:
+    result = CliRunner().invoke(app, ["models", "list"])
+
+    assert result.exit_code == 0
+    assert "fake:tts" in result.stdout
+    assert "kokoro:82m" in result.stdout
+
+
+def test_models_inspect_cli_writes_json() -> None:
+    result = CliRunner().invoke(app, ["models", "inspect", "kokoro:82m"])
+
+    assert result.exit_code == 0
+    body = json.loads(result.stdout)
+    assert body["id"] == "kokoro:82m"
+    assert body["executable"] is True
+    assert body["requires_extra"] == "kokoro"
+
+
 def test_conformance_cli_writes_json_report(tmp_path: Path, monkeypatch) -> None:
     output = tmp_path / "conformance.json"
 
