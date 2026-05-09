@@ -28,10 +28,10 @@ uv run timbregrid manifest validate manifests/<model-id>.yaml
 3. Run registry metadata audit:
 
 ```bash
-uv run timbregrid registry audit
+uv run timbregrid registry audit --skip-network
 ```
 
-Use `--skip-network` only when you are offline; CI checks network reachability for upstream URLs.
+Required PR checks skip network access so external outages do not block unrelated changes. Maintainer release and scheduled checks run the full URL audit with `uv run timbregrid registry audit --timeout 5`.
 
 4. Regenerate registry artifacts:
 
@@ -49,4 +49,3 @@ uv run timbregrid registry build --check
 - `capabilities.formats` and `audio.formats` must match.
 - Voice cloning or custom voices must set `policy.requires_voice_consent=true`.
 - Do not submit private datasets, reference voice samples, consent records, API keys, or local filesystem paths.
-

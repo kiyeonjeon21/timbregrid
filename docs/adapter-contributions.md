@@ -27,7 +27,7 @@ Use the smallest set that covers the change:
 ```bash
 uv run pytest
 uv run timbregrid manifest validate manifests/<model>.yaml
-uv run timbregrid registry audit
+uv run timbregrid registry audit --skip-network
 uv run timbregrid registry build
 uv run timbregrid registry build --check
 ```
@@ -42,4 +42,3 @@ uv run timbregrid serve --model <model-id> --port 8889
 ```
 
 Only commit benchmark output when it is raw JSON from a reproducible run. Do not commit generated audio, downloaded weights, private voice records, or local cache paths.
-

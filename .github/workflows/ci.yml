@@ -40,7 +40,7 @@ jobs:
         run: uv run timbregrid registry build --check
 
       - name: Audit registry metadata
-        run: uv run timbregrid registry audit --timeout 5
+        run: uv run timbregrid registry audit --skip-network
 
       - name: Validate benchmark artifacts
         run: |

@@ -9,18 +9,25 @@ References:
 
 ## Before First Upload
 
-1. Decide how to handle KittenTTS installation for PyPI users:
-   - wait for an official index-hosted KittenTTS distribution and depend on that;
-   - move the direct wheel install to documentation or a non-published development dependency group;
-   - publish TimbreGrid without a `kitten` extra and keep KittenTTS source installs documented separately.
-2. Remove direct URL dependencies from `[project.optional-dependencies]`.
-3. Confirm the built wheel metadata has no direct URL `Requires-Dist` entries.
-4. Create a PyPI trusted publisher for:
+Current default: keep the working KittenTTS source install path and do not publish to PyPI until the dependency metadata is compatible with package indexes.
+
+Before the first PyPI upload, choose one KittenTTS packaging strategy:
+
+1. Wait for an official index-hosted KittenTTS distribution and depend on that.
+2. Move the direct wheel install to documentation or a non-published development dependency group.
+3. Publish TimbreGrid without a `kitten` extra and keep KittenTTS source installs documented separately.
+
+Then:
+
+1. Remove direct URL dependencies from `[project.optional-dependencies]`.
+2. Confirm the built wheel metadata has no direct URL `Requires-Dist` entries.
+3. Create a PyPI trusted publisher for:
    - repository: `kiyeonjeon21/timbregrid`;
    - workflow: `publish-pypi.yml`;
    - environment: `pypi`;
    - project: `timbregrid`.
-5. Keep the GitHub `pypi` environment protected with manual approval.
+4. Keep the GitHub `pypi` environment protected with manual approval.
+5. Remove the guard in `publish-pypi.yml` only after the metadata blocker is gone.
 
 ## Publish Flow
 
@@ -43,4 +50,3 @@ uvx --from timbregrid timbregrid models list
 - Do not publish from a dirty local checkout.
 - Do not add direct URL dependencies to published package metadata.
 - Do not publish model weights or private voice assets as package data.
-

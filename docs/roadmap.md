@@ -47,7 +47,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Publish a hosted static registry index.
 - [x] Publish a prerelease with release artifacts and a GHCR fake-gateway image.
 - [ ] Add stronger CI checks for upstream links, checksums, license identifiers, and optional install smoke tests.
-  - Partial: license allow-listing, network-dependent upstream URL audit, optional dependency resolution dry-run, and release Docker smoke checks exist.
+  - Partial: license allow-listing, deterministic PR audit, scheduled/release upstream URL audit, optional dependency resolution dry-run, and release Docker smoke checks exist.
   - Remaining: checksum metadata checks and broader optional install smoke coverage.
 - [ ] Add a clearer external manifest contribution guide once the first outside-style manifest PR flow is tested.
   - Partial: a manifest contribution guide exists; completion requires validating it against an outside-style PR.
@@ -60,7 +60,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Add consent/provenance enforcement hooks before cloning adapters are treated as production-ready.
 - [x] Add a direct OpenAI SDK usage example beyond compatibility tests.
 - [ ] Add integration examples for Open WebUI, Pipecat, and LiveKit.
-  - Partial: an Open WebUI TTS integration guide exists.
+  - Partial: an Open WebUI TTS integration guide and Kokoro real-audio demo guide exist.
 - [ ] Add a WebUI for A/B tests, latency views, and voice preview only after the CLI/gateway contracts stabilize.
 
 ## First Milestone

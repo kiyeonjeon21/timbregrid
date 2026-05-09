@@ -27,7 +27,7 @@ Run the checks that match your change:
 
 ```bash
 uv run pytest
-uv run timbregrid registry audit
+uv run timbregrid registry audit --skip-network
 uv run timbregrid registry build --check
 for benchmark in benchmarks/examples/*.json; do uv run timbregrid bench validate "$benchmark"; done
 for benchmark in benchmarks/submissions/*.json; do uv run timbregrid bench validate "$benchmark"; done
@@ -37,10 +37,12 @@ For manifest changes:
 
 ```bash
 uv run timbregrid manifest validate manifests/<model>.yaml
-uv run timbregrid registry audit
+uv run timbregrid registry audit --skip-network
 uv run timbregrid registry build
 uv run timbregrid registry build --check
 ```
+
+Maintainer release and scheduled checks run the full network audit with `uv run timbregrid registry audit --timeout 5`.
 
 For benchmark submissions:
 
