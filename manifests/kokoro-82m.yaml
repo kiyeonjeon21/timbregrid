@@ -1,0 +1,33 @@
+schema_version: "0.1"
+id: kokoro:82m
+name: Kokoro 82M
+upstream:
+  homepage: https://huggingface.co/hexgrad/Kokoro-82M
+  license: apache-2.0
+  weights: open-weight
+runtime:
+  kind: python
+  package: kokoro
+  acceleration:
+    cpu: true
+    cuda: true
+    metal: optional
+capabilities:
+  streaming: false
+  voice_cloning: false
+  multilingual: limited
+  long_form: limited
+  style_control: speed
+  formats: [wav, mp3, pcm]
+audio:
+  sample_rate_hz: 24000
+  formats: [wav, mp3, pcm]
+voices:
+  builtin: true
+  custom: false
+policy:
+  commercial_use: true
+  requires_voice_consent: false
+notes:
+  - "Good baseline for low-latency local TTS."
+  - "Manifest example only; the MVP does not include a Kokoro runtime adapter."

@@ -3,11 +3,48 @@
 > The open compatibility grid for synthetic speech.
 > Manifests, benchmarks, conformance tests, routing policy, provenance, and a reference OpenAI-compatible gateway for OSS TTS.
 
-**Status**: idea / planning  
+**Status**: spec + mock MVP implementation  
 **Research snapshot**: 2026-05-09  
 **License (planned)**: MIT for TimbreGrid core; upstream model licenses are preserved per model manifest.
 
-This repository is currently a planning document. The intended first implementation is a small spec-first CLI plus a reference OpenAI-compatible TTS gateway.
+This repository now includes the first spec-first CLI plus a reference OpenAI-compatible TTS gateway backed by a deterministic fake TTS adapter. Real model adapters such as Kokoro are intentionally out of scope for the first MVP.
+
+## Current MVP Quickstart
+
+```bash
+uv run timbregrid manifest validate manifests/fake-tts.yaml
+uv run timbregrid bench fake:tts --suite realtime-agent --output /tmp/timbregrid-bench.json
+uv run timbregrid serve --model fake:tts --port 8889
+```
+
+In another shell:
+
+```bash
+curl http://localhost:8889/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{"model":"fake:tts","input":"Hello from TimbreGrid","voice":"alloy","response_format":"wav"}' \
+  --output speech.wav
+```
+
+The fake adapter generates deterministic local audio bytes without downloading model weights. It is meant for schema, CLI, conformance, benchmark, and SDK compatibility work.
+
+### Current MVP Scope
+
+Works today:
+
+- validate TimbreGrid model manifests from YAML;
+- run a fake-adapter benchmark suite and write raw JSON output;
+- serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
+- run a small conformance suite against that endpoint;
+- verify Python OpenAI SDK compatibility against the local gateway.
+
+Not included yet:
+
+- real Kokoro, KittenTTS, Chatterbox, or Qwen3-TTS inference adapters;
+- Docker images, SQLite metadata storage, hosted registry, or voice provenance storage;
+- SSE audio streaming or long-form dialogue routing.
+
+`manifests/kokoro-82m.yaml` is included as a schema example only. It is not registered as an executable adapter in the current MVP.
 
 ---
 

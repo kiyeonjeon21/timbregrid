@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timbregrid.local/schemas/timbregrid.model.schema.json",
+  "title": "TimbreGrid Model Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "upstream",
+    "runtime",
+    "capabilities",
+    "audio",
+    "voices",
+    "policy"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["homepage", "license", "weights"],
+      "properties": {
+        "homepage": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 },
+        "weights": { "type": "string", "minLength": 1 }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "package": { "type": ["string", "null"] },
+        "acceleration": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": { "type": "boolean" },
+            "cuda": { "type": "boolean" },
+            "metal": {
+              "anyOf": [
+                { "type": "boolean" },
+                { "const": "optional" }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "streaming": { "type": "boolean" },
+        "voice_cloning": { "type": "boolean" },
+        "multilingual": { "enum": ["none", "limited", "full"] },
+        "long_form": { "enum": ["none", "limited", "full"] },
+        "style_control": {
+          "anyOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } },
+            { "type": "null" }
+          ]
+        },
+        "formats": {
+          "type": "array",
+          "items": { "enum": ["mp3", "opus", "aac", "flac", "wav", "pcm"] }
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sample_rate_hz", "formats"],
+      "properties": {
+        "sample_rate_hz": { "type": "integer", "exclusiveMinimum": 0 },
+        "formats": {
+          "type": "array",
+          "items": { "enum": ["mp3", "opus", "aac", "flac", "wav", "pcm"] }
+        }
+      }
+    },
+    "voices": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "builtin": { "type": "boolean" },
+        "custom": { "type": "boolean" }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commercial_use": { "type": "boolean" },
+        "requires_voice_consent": { "type": "boolean" }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

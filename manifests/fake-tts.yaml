@@ -1,0 +1,32 @@
+schema_version: "0.1"
+id: fake:tts
+name: TimbreGrid Fake TTS
+upstream:
+  homepage: https://github.com/kiyeonjeon21/timbregrid
+  license: mit
+  weights: none
+runtime:
+  kind: python
+  package: timbregrid
+  acceleration:
+    cpu: true
+    cuda: false
+    metal: false
+capabilities:
+  streaming: false
+  voice_cloning: false
+  multilingual: limited
+  long_form: limited
+  style_control: speed
+  formats: [mp3, wav, pcm]
+audio:
+  sample_rate_hz: 24000
+  formats: [mp3, wav, pcm]
+voices:
+  builtin: true
+  custom: false
+policy:
+  commercial_use: true
+  requires_voice_consent: false
+notes:
+  - "Deterministic test adapter for conformance and benchmark development."

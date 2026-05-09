@@ -1,0 +1,31 @@
+[project]
+name = "timbregrid"
+version = "0.1.0"
+description = "Open compatibility and evaluation layer for OSS TTS."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "httpx>=0.27.0",
+  "pydantic>=2.8.0",
+  "pyyaml>=6.0.2",
+  "typer>=0.12.0",
+  "uvicorn[standard]>=0.30.0",
+]
+
+[project.scripts]
+timbregrid = "timbregrid.cli:app"
+
+[dependency-groups]
+dev = [
+  "openai>=1.0.0",
+  "pytest>=8.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
