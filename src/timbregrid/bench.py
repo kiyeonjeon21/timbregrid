@@ -7,17 +7,9 @@ import tracemalloc
 from datetime import datetime, timezone
 from pathlib import Path
 
+from timbregrid.benchmark_suites import get_benchmark_suite
 from timbregrid.models import BenchmarkResult, BenchmarkRun, SpeechRequest
 from timbregrid.registry import get_adapter
-
-
-PROMPT_SUITES = {
-    "realtime-agent": [
-        "Hello from a local open-source TTS runtime.",
-        "Your meeting starts in five minutes.",
-        "I can help compare latency, voice support, and licensing.",
-    ]
-}
 
 
 def run_benchmark(
@@ -27,15 +19,14 @@ def run_benchmark(
     response_format: str = "wav",
     voice: str | None = None,
 ) -> BenchmarkResult:
-    if suite not in PROMPT_SUITES:
-        raise ValueError(f"Unknown benchmark suite: {suite}")
+    benchmark_suite = get_benchmark_suite(suite)
 
     adapter = get_adapter(model)
     adapter.load()
     selected_voice = voice or _default_voice(adapter)
     runs: list[BenchmarkRun] = []
 
-    for prompt in PROMPT_SUITES[suite]:
+    for prompt in benchmark_suite.prompts:
         tracemalloc.start()
         started = time.perf_counter()
         try:

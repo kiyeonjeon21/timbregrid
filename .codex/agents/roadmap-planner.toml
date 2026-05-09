@@ -1,0 +1,9 @@
+name = "roadmap_planner"
+description = "Read-only TimbreGrid roadmap planner that maps README roadmap phases to the next implementable slice."
+sandbox_mode = "read-only"
+developer_instructions = """
+Stay in planning and exploration mode.
+Read README.md roadmap sections first, then inspect only the files needed to classify the next unfinished milestone.
+Return a concise plan with validation commands and README update notes.
+Do not edit files.
+"""

@@ -95,7 +95,8 @@ Works today:
 - validate TimbreGrid model manifests from YAML;
 - generate a static model registry index and support matrix from manifests;
 - route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy;
-- run a fake-adapter benchmark suite and write raw JSON output;
+- run fake-adapter benchmark suites and write raw JSON output;
+- define benchmark prompt suites for realtime-agent, narration, multilingual, cloning, and dialogue;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
 - run a speech conformance suite with per-case JSON reports against that endpoint;
 - verify Python OpenAI SDK compatibility against the local gateway;
@@ -496,13 +497,25 @@ Default stance:
 
 Initial implementation should prefer **FastAPI** because the model wrappers and audio tooling are Python-heavy. Go can be revisited after the gateway contract stabilizes.
 
+## Codex Project Workflow
+
+This repo includes project-scoped Codex setup so future implementation sessions can continue from the README roadmap without rebuilding the working rules from scratch.
+
+- `AGENTS.md` defines durable repo instructions for roadmap use, generated files, and validation.
+- `.agents/skills/timbregrid-roadmap` guides "what remains / next milestone / continue from README" work.
+- `.agents/skills/timbregrid-validation` maps changed areas to the smallest relevant validation commands.
+- `.codex/agents` defines read-only custom agents for explicit subagent workflows.
+- `.codex/hooks` provides advisory reminders for roadmap hygiene.
+
+See [`docs/codex-workflow.md`](docs/codex-workflow.md) for the management model.
+
 ## Development Roadmap
 
 ### Phase 0: Spec-First Planning
 
 - [x] define `timbregrid.model.yaml` manifest schema;
 - [x] define `SpeechRequest`, `SpeechResult`, `Capabilities`, and `VoiceInfo`;
-- [ ] define benchmark prompt suites: realtime-agent, narration, multilingual, cloning, dialogue (partial: `realtime-agent` exists);
+- [x] define benchmark prompt suites: realtime-agent, narration, multilingual, cloning, dialogue;
 - [x] define OpenAI speech conformance cases;
 - [ ] create example manifests for Kokoro, KittenTTS, Chatterbox, Qwen3-TTS (partial: `fake:tts` and `kokoro:82m` exist).
 

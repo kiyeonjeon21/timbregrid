@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/timbregrid_workflow.py\"",
+            "timeout": 10,
+            "statusMessage": "Loading TimbreGrid workflow context"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/timbregrid_workflow.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking TimbreGrid roadmap hygiene"
+          }
+        ]
+      }
+    ]
+  }
+}

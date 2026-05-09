@@ -31,6 +31,36 @@ def test_bench_cli_writes_json(tmp_path: Path) -> None:
     assert body["metrics"]["failures"] == 0
 
 
+def test_bench_cli_accepts_narration_suite(tmp_path: Path) -> None:
+    output = tmp_path / "bench.json"
+
+    result = CliRunner().invoke(
+        app,
+        ["bench", "fake:tts", "--suite", "narration", "--output", str(output)],
+    )
+
+    assert result.exit_code == 0
+    body = json.loads(output.read_text(encoding="utf-8"))
+    assert body["model"] == "fake:tts"
+    assert body["suite"] == "narration"
+    assert body["metrics"]["runs"] >= 3
+    assert body["metrics"]["failures"] == 0
+
+
+def test_bench_cli_lists_available_suites_for_unknown_suite(tmp_path: Path) -> None:
+    output = tmp_path / "bench.json"
+
+    result = CliRunner().invoke(
+        app,
+        ["bench", "fake:tts", "--suite", "missing-suite", "--output", str(output)],
+    )
+
+    assert result.exit_code == 1
+    assert "Unknown benchmark suite: missing-suite" in result.stderr
+    assert "realtime-agent" in result.stderr
+    assert "narration" in result.stderr
+
+
 def test_models_list_cli_includes_fake_and_kokoro() -> None:
     result = CliRunner().invoke(app, ["models", "list"])
 
@@ -129,6 +159,34 @@ def test_route_explain_cli_writes_json(monkeypatch) -> None:
     assert body["applied_hints"]["hardware_profile"] == "generic-ci"
     assert body["benchmark_data"] == "used"
     assert body["selected_benchmark"]["hardware_profile"] == "generic-ci"
+
+
+def test_route_explain_cli_preserves_requested_benchmark_suite(monkeypatch) -> None:
+    monkeypatch.setattr("timbregrid.registry.importlib.util.find_spec", lambda _: None)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "route",
+            "explain",
+            "--model",
+            "auto",
+            "--voice",
+            "alloy",
+            "--response-format",
+            "wav",
+            "--purpose",
+            "realtime",
+            "--suite",
+            "narration",
+        ],
+    )
+
+    assert result.exit_code == 0
+    body = json.loads(result.stdout)
+    assert body["selected_model"] == "fake:tts"
+    assert body["applied_hints"]["benchmark_suite"] == "narration"
+    assert body["benchmark_data"] == "missing"
 
 
 def test_route_explain_cli_returns_no_route(monkeypatch) -> None:
