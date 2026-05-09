@@ -9,7 +9,7 @@ on:
       release_tag:
         description: "Existing tag to publish"
         required: true
-        default: "v0.1.0-alpha.1"
+        default: "v0.1.0-alpha.2"
 
 permissions:
   contents: write
@@ -59,7 +59,11 @@ jobs:
         run: uv sync --all-groups
 
       - name: Check optional dependency resolution
-        run: uv sync --all-groups --extra kitten --extra kokoro --dry-run
+        run: |
+          uv sync --all-groups --extra kokoro --dry-run
+          uv pip install --dry-run \
+            "kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl" \
+            "onnxruntime<1.26"
 
       - name: Run tests
         run: uv run pytest
@@ -86,7 +90,7 @@ jobs:
           done
 
       - name: Build Python artifacts
-        run: uv build
+        run: uv build --out-dir dist --clear
 
       - name: Build Docker smoke image
         run: docker build -t timbregrid:release-smoke .

@@ -28,3 +28,5 @@ Readiness labels are intentionally conservative:
 `doctor` is not a certification suite for a whole product integration. It checks basic OpenAI-compatible TTS behavior and points to the failed cases when the server does not match the expected shape.
 
 Use `timbregrid conformance` when you need a strict pass/fail suite. Use `timbregrid doctor` when you want a concise report for humans.
+
+For an external-server proof using Speaches, see [`external-server-proof.md`](external-server-proof.md).

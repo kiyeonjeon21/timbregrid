@@ -6,7 +6,7 @@ on:
       release_tag:
         description: "Existing tag to publish to PyPI"
         required: true
-        default: "v0.1.0-alpha.1"
+        default: "v0.1.0-alpha.2"
 
 permissions:
   contents: read
@@ -45,16 +45,38 @@ jobs:
       - name: Audit registry metadata
         run: uv run timbregrid registry audit --timeout 5
 
-      - name: Check PyPI-compatible dependency metadata
-        run: |
-          if grep -nE ' @ ((https?|file)://|git\+)' pyproject.toml; then
-            echo "PyPI does not accept published distributions with direct URL dependencies." >&2
-            echo "Move direct wheel installs to docs or a non-published dependency group before publishing." >&2
-            exit 1
-          fi
-
       - name: Build Python artifacts
-        run: uv build
+        run: uv build --out-dir dist --clear
+
+      - name: Check PyPI-compatible wheel metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          import zipfile
+
+          wheels = sorted(Path("dist").glob("*.whl"))
+          if len(wheels) != 1:
+              print(f"Expected exactly one wheel, found {len(wheels)}", file=sys.stderr)
+              sys.exit(1)
+
+          with zipfile.ZipFile(wheels[0]) as wheel:
+              metadata_name = next(
+                  name for name in wheel.namelist() if name.endswith(".dist-info/METADATA")
+              )
+              metadata = wheel.read(metadata_name).decode()
+
+          bad = [
+              line
+              for line in metadata.splitlines()
+              if line.startswith("Requires-Dist:")
+              and any(token in line for token in (" @ http://", " @ https://", " @ file://", " @ git+"))
+          ]
+          if bad:
+              print("PyPI package metadata contains direct URL dependencies:", file=sys.stderr)
+              print("\n".join(bad), file=sys.stderr)
+              sys.exit(1)
+          PY
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

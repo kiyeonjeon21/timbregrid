@@ -34,10 +34,10 @@ Use TimbreGrid when you want to:
 
 Try the compatibility stack without downloading model weights. The built-in fake adapter is deterministic and exists so manifests, benchmarks, conformance, routing, Docker, and SDK compatibility can be tested quickly.
 
-Run the published alpha container:
+Run the latest published alpha container:
 
 ```bash
-docker run --rm -p 8889:8889 ghcr.io/kiyeonjeon21/timbregrid:0.1.0-alpha.1
+docker run --rm -p 8889:8889 ghcr.io/kiyeonjeon21/timbregrid:alpha
 ```
 
 Then call the OpenAI-compatible speech endpoint:
@@ -52,6 +52,20 @@ curl http://localhost:8889/v1/audio/speech \
 The generated `speech.wav` is test audio, not natural speech. Install the optional Kokoro or KittenTTS adapters below when you want real local synthesis.
 
 For a real voice demo, see [`docs/real-audio-demo.md`](docs/real-audio-demo.md).
+
+To diagnose an existing OpenAI-compatible TTS server instead of TimbreGrid's gateway, see [`docs/external-server-proof.md`](docs/external-server-proof.md).
+
+Run the CLI directly from GitHub while the PyPI alpha is being prepared:
+
+```bash
+uvx --from git+https://github.com/kiyeonjeon21/timbregrid timbregrid --help
+```
+
+After the PyPI alpha is published, use:
+
+```bash
+uvx --from timbregrid==0.1.0a2 timbregrid --help
+```
 
 ## Run From Source
 
@@ -107,7 +121,7 @@ Not included yet:
 
 - Chatterbox or Qwen3-TTS inference adapters.
 - SQLite voice metadata storage or custom voice synthesis.
-- PyPI publishing. A manual workflow and runbook exist, but package metadata still needs a PyPI-compatible KittenTTS install path.
+- Published PyPI package. The package metadata is prepared for the next alpha, but the first upload still requires maintainer Trusted Publishing setup and workflow execution.
 - SSE audio streaming.
 - Pipecat or LiveKit integration examples; Open WebUI is currently a docs-only TTS guide.
 
@@ -138,7 +152,7 @@ Known model entries:
 
 - `fake:tts`: deterministic test adapter.
 - `kokoro:82m`: optional executable adapter via `timbregrid[kokoro]`.
-- `kitten-tts:nano-0.8`: optional executable edge/CPU adapter via `timbregrid[kitten]`.
+- `kitten-tts:nano-0.8`: optional executable edge/CPU adapter when KittenTTS is installed from a source checkout.
 - `chatterbox:tts`: manifest-only expressive/cloning example.
 - `qwen3-tts:0.6b-base`: manifest-only multilingual/cloning example.
 
@@ -210,6 +224,16 @@ uv run timbregrid doctor http://localhost:8889/v1 \
 
 The doctor command wraps conformance results into a compatibility report for basic Open WebUI-style and Pipecat OpenAI TTS-style readiness. It is not a full integration certification.
 
+Example against an external Speaches server:
+
+```bash
+uv run timbregrid doctor http://localhost:8000/v1 \
+  --model speaches-ai/Kokoro-82M-v1.0-ONNX \
+  --voice af_heart \
+  --response-format wav \
+  --output demo-assets/speaches-doctor.json
+```
+
 Run conformance checks against any OpenAI-compatible TTS server:
 
 ```bash
@@ -258,16 +282,22 @@ Speech requests must use a known builtin voice or a local catalog voice for the 
 
 ## Optional KittenTTS Adapter
 
-Install optional KittenTTS dependencies while keeping development dependencies available:
+Install KittenTTS dependencies from a source checkout:
 
 ```bash
-uv sync --all-groups --extra kitten
+uv sync --all-groups
+uv pip install \
+  "kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl" \
+  "onnxruntime<1.26"
 ```
 
-To keep Kokoro installed in the same environment, include both extras in the same sync:
+To keep Kokoro installed in the same environment, include the Kokoro extra in the sync command before installing KittenTTS:
 
 ```bash
-uv sync --all-groups --extra kitten --extra kokoro
+uv sync --all-groups --extra kokoro
+uv pip install \
+  "kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl" \
+  "onnxruntime<1.26"
 ```
 
 Try the adapter:
@@ -280,25 +310,28 @@ uv run timbregrid serve --model kitten-tts:nano-0.8 --port 8889
 
 Use `response_format="wav"` or `response_format="pcm"` and a KittenTTS voice such as `Jasper`.
 
+See [`docs/kitten-tts.md`](docs/kitten-tts.md) for the packaging caveat behind this explicit install path.
+
 ## Integrations
 
 TimbreGrid can be used as a local OpenAI-compatible TTS backend for tools that call `/v1/audio/speech`.
 
 - [Open WebUI integration guide](docs/integrations/open-webui.md)
 - [Open WebUI + TimbreGrid compose example](examples/open-webui-compose.yml)
+- [External server proof with Speaches](docs/external-server-proof.md)
 
 Integration examples are intentionally narrow until streaming and broader gateway compatibility stabilize.
 
 ## Release Status
 
-The alpha release path publishes GitHub release assets, a hosted registry, and a lightweight GHCR image. Maintainer notes live in [`docs/release-runbook.md`](docs/release-runbook.md). PyPI publishing is tracked separately in [`docs/pypi-publishing.md`](docs/pypi-publishing.md) because the current KittenTTS install path uses a direct wheel URL that is not valid for PyPI package metadata.
+The alpha release path publishes GitHub release assets, a hosted registry, and a lightweight GHCR image. PyPI publishing is prepared through Trusted Publishing, with maintainer setup notes in [`docs/pypi-publishing.md`](docs/pypi-publishing.md). Release maintainer notes live in [`docs/release-runbook.md`](docs/release-runbook.md).
 
 ## Docker
 
 Run the published alpha image:
 
 ```bash
-docker run --rm -p 8889:8889 ghcr.io/kiyeonjeon21/timbregrid:0.1.0-alpha.1
+docker run --rm -p 8889:8889 ghcr.io/kiyeonjeon21/timbregrid:alpha
 ```
 
 Or build the fake gateway container locally:
@@ -351,10 +384,11 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 
 Near-term next work:
 
-- Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
+- Publish external-server doctor proof guides, starting with Speaches and then LocalAI where feasible.
 - Use `timbregrid doctor` reports to harden integration examples (Open WebUI guide and compose example wired to `doctor` preflight; Pipecat and LiveKit pending).
+- Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
-- Harden checksum metadata, optional install smoke coverage, and PyPI publishing readiness.
+- Harden checksum metadata, optional install smoke coverage, and the first PyPI alpha release.
 
 ## Contributing
 

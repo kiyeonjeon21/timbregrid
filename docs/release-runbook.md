@@ -20,9 +20,32 @@ for benchmark_dir in benchmarks/examples benchmarks/submissions; do
     uv run timbregrid bench validate "$benchmark"
   done
 done
+uv build --out-dir dist --clear
 ```
 
-5. Run a Docker smoke check when Docker is available:
+5. Confirm the built wheel has no direct URL dependency metadata:
+
+```bash
+python - <<'PY'
+from pathlib import Path
+import zipfile
+
+wheels = sorted(Path("dist").glob("*.whl"))
+if len(wheels) != 1:
+    raise SystemExit(f"expected exactly one wheel, found {len(wheels)}")
+
+wheel = wheels[0]
+with zipfile.ZipFile(wheel) as archive:
+    metadata_name = next(name for name in archive.namelist() if name.endswith(".dist-info/METADATA"))
+    metadata = archive.read(metadata_name).decode()
+
+for line in metadata.splitlines():
+    if line.startswith("Requires-Dist:") and " @ " in line:
+        raise SystemExit(f"direct URL dependency in wheel metadata: {line}")
+PY
+```
+
+6. Run a Docker smoke check when Docker is available:
 
 ```bash
 docker build -t timbregrid:release-smoke .
@@ -48,6 +71,8 @@ The release workflow builds Python artifacts, checks the registry, publishes the
 
 If the tag already exists, use the manual `Release` workflow dispatch with the existing tag.
 
+After the release workflow succeeds, run the manual `Publish PyPI` workflow for the same tag. The workflow uses PyPI Trusted Publishing through the `pypi` GitHub environment and should not require a long-lived PyPI token.
+
 ## Post-Release Checks
 
 Verify:
@@ -60,8 +85,9 @@ Verify:
 Example image smoke:
 
 ```bash
-docker pull ghcr.io/kiyeonjeon21/timbregrid:0.1.0-alpha.1
-docker run --rm -d --name timbregrid-release-check -p 8891:8889 ghcr.io/kiyeonjeon21/timbregrid:0.1.0-alpha.1
+release_tag=v0.1.0-alpha.N
+docker pull "ghcr.io/kiyeonjeon21/timbregrid:${release_tag#v}"
+docker run --rm -d --name timbregrid-release-check -p 8891:8889 "ghcr.io/kiyeonjeon21/timbregrid:${release_tag#v}"
 curl -fsS http://127.0.0.1:8891/health
 curl -fsS -o /tmp/timbregrid-release-check.wav \
   http://127.0.0.1:8891/v1/audio/speech \
@@ -70,7 +96,14 @@ curl -fsS -o /tmp/timbregrid-release-check.wav \
 docker stop timbregrid-release-check
 ```
 
+Example PyPI smoke after the `Publish PyPI` workflow:
+
+```bash
+uvx --from timbregrid timbregrid --help
+uvx --from timbregrid timbregrid models list
+uvx --from timbregrid timbregrid doctor --help
+```
+
 ## Failure Handling
 
 Do not overwrite or delete public artifacts unless the artifact is clearly broken and no users can reasonably depend on it. Prefer a follow-up prerelease tag with corrected artifacts and a short note in the previous release.
-

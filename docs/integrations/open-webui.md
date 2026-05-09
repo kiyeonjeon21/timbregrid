@@ -16,7 +16,10 @@ uv run timbregrid serve --model fake:tts --port 8889
 For KittenTTS:
 
 ```bash
-uv sync --all-groups --extra kitten
+uv sync --all-groups
+uv pip install \
+  "kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl" \
+  "onnxruntime<1.26"
 uv run timbregrid serve --model kitten-tts:nano-0.8 --port 8889
 ```
 
@@ -57,14 +60,26 @@ Use `--model kitten-tts:nano-0.8 --voice Jasper` for KittenTTS or `--model kokor
 The command prints a per-integration readiness line. Look for `open_webui_tts`:
 
 ```text
-OK doctor: 9/9 conformance cases passed
+OK doctor: 11/11 conformance cases passed
 open_webui_tts: ready - basic OpenAI-compatible /v1/audio/speech request returned audio
 pipecat_openai_tts: likely_ready - OpenAI-style speech request, speed, and instructions fields passed basic checks
 ```
 
-`ready` means it is safe to proceed to the Admin Panel steps below. `failed` means Open WebUI will not work with this configuration; open `doctor.json` and inspect `conformance.cases[].failure_reason` for the underlying cause before changing anything in Open WebUI.
+`ready` means it is safe to proceed to the Admin Panel steps below. `failed` means Open WebUI will not work with this configuration; open `doctor.json` and inspect `conformance.cases[].failure` for the underlying cause before changing anything in Open WebUI.
 
 See [`docs/doctor.md`](../doctor.md) for the full readiness label semantics.
+
+The same preflight can be used for an external TTS server such as Speaches:
+
+```bash
+uv run timbregrid doctor http://localhost:8000/v1 \
+  --model speaches-ai/Kokoro-82M-v1.0-ONNX \
+  --voice af_heart \
+  --response-format wav \
+  --output demo-assets/speaches-doctor.json
+```
+
+See [`docs/external-server-proof.md`](../external-server-proof.md) for the full Speaches flow.
 
 ## Configure Open WebUI
 
@@ -102,6 +117,8 @@ Use `http://127.0.0.1:8889/v1` instead when Open WebUI is not running inside Doc
 ## Notes
 
 - For a one-command both-stack run, see [`examples/open-webui-compose.yml`](../../examples/open-webui-compose.yml). It boots TimbreGrid (with `fake:tts`) and Open WebUI together with the right `AUDIO_TTS_*` env vars already wired up.
+- Use `timbregrid doctor` before changing Open WebUI settings when testing an external server. It isolates endpoint compatibility problems from Open WebUI configuration problems.
+- KittenTTS currently uses an explicit GitHub wheel install from a source checkout; see [`docs/kitten-tts.md`](../kitten-tts.md).
 - Open WebUI must be able to reach the TimbreGrid process from its own network namespace.
 - Set `response_format` to `wav` for Kokoro and KittenTTS. The OpenAI TTS default is often `mp3`, which those adapters do not currently emit.
 - TimbreGrid validates known voices for the selected model. Use `/v1/audio/voices?model=<model-id>` to list available voices.

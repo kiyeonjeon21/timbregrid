@@ -90,8 +90,11 @@ If port `8889` is already in use, start the gateway with another port and update
 uv run timbregrid serve --model kokoro:82m --port 8890
 ```
 
-If you later install another optional extra, include every optional adapter you want to keep in the same sync command:
+If you later install KittenTTS in the same checkout, keep Kokoro in the sync command and install KittenTTS explicitly:
 
 ```bash
-uv sync --all-groups --extra kokoro --extra kitten
+uv sync --all-groups --extra kokoro
+uv pip install \
+  "kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl" \
+  "onnxruntime<1.26"
 ```

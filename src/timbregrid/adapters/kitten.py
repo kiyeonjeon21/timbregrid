@@ -18,7 +18,10 @@ DEFAULT_MODEL_NAME = "KittenML/kitten-tts-nano-0.8"
 KITTEN_VOICES = ("Bella", "Jasper", "Luna", "Bruno", "Rosie", "Hugo", "Kiki", "Leo")
 INSTALL_HINT = (
     "KittenTTS support requires optional dependencies. Install them with "
-    "`uv sync --all-groups --extra kitten` or `pip install 'timbregrid[kitten]'`."
+    "`uv pip install "
+    "\"kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/"
+    "kittentts-0.8.1-py3-none-any.whl\" \"onnxruntime<1.26\"` "
+    "inside a TimbreGrid source checkout."
 )
 
 
