@@ -1,6 +1,6 @@
 [project]
 name = "timbregrid"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Open compatibility and evaluation layer for OSS TTS."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,6 +27,12 @@ kokoro = [
 
 [project.scripts]
 timbregrid = "timbregrid.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/kiyeonjeon21/timbregrid"
+Repository = "https://github.com/kiyeonjeon21/timbregrid"
+Issues = "https://github.com/kiyeonjeon21/timbregrid/issues"
+Roadmap = "https://github.com/kiyeonjeon21/timbregrid/blob/main/docs/roadmap.md"
 
 [dependency-groups]
 dev = [

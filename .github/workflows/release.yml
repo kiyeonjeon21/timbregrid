@@ -1,0 +1,202 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing tag to publish"
+        required: true
+        default: "v0.1.0-alpha.1"
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+  pages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+
+      - name: Set release metadata
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            release_tag="${{ inputs.release_tag }}"
+          else
+            release_tag="${GITHUB_REF_NAME}"
+          fi
+          release_version="${release_tag#v}"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          sha="$(git rev-parse HEAD)"
+
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "release_version=$release_version" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Check optional dependency resolution
+        run: uv sync --all-groups --extra kitten --extra kokoro --dry-run
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Validate manifests
+        run: |
+          for manifest in manifests/*.yaml; do
+            uv run timbregrid manifest validate "$manifest"
+          done
+
+      - name: Check registry artifacts
+        run: uv run timbregrid registry build --check
+
+      - name: Validate benchmark artifacts
+        run: |
+          for benchmark_dir in benchmarks/examples benchmarks/submissions; do
+            for benchmark in "$benchmark_dir"/*.json; do
+              test -e "$benchmark" || continue
+              uv run timbregrid bench validate "$benchmark"
+            done
+          done
+
+      - name: Build Python artifacts
+        run: uv build
+
+      - name: Build Docker smoke image
+        run: docker build -t timbregrid:release-smoke .
+
+      - name: Run Docker smoke gateway
+        run: docker run --rm -d --name timbregrid-release-smoke -p 8889:8889 timbregrid:release-smoke
+
+      - name: Wait for Docker smoke gateway
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8889/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs timbregrid-release-smoke
+          exit 1
+
+      - name: Smoke Docker speech endpoint
+        run: |
+          curl -fsS -o /tmp/timbregrid-release-smoke.wav \
+            http://127.0.0.1:8889/v1/audio/speech \
+            -H "Content-Type: application/json" \
+            -d '{"model":"fake:tts","input":"Hello from published TimbreGrid","voice":"alloy","response_format":"wav"}'
+          test -s /tmp/timbregrid-release-smoke.wav
+
+      - name: Stop Docker smoke gateway
+        if: always()
+        run: docker stop timbregrid-release-smoke || true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish GHCR image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.release.outputs.image }}:${{ steps.release.outputs.release_version }}
+            ${{ steps.release.outputs.image }}:alpha
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.release.outputs.release_version }}
+            org.opencontainers.image.revision=${{ steps.release.outputs.sha }}
+            org.opencontainers.image.licenses=MIT
+
+      - name: Publish GitHub Release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+        run: |
+          notes_file="docs/releases/${RELEASE_TAG}.md"
+          if [ ! -f "$notes_file" ]; then
+            echo "Missing release notes: $notes_file" >&2
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "TimbreGrid $RELEASE_TAG" \
+              --notes-file "$notes_file" \
+              --prerelease
+            gh release upload "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              dist/* \
+              registry/index.json \
+              docs/support-matrix.md \
+              --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "${{ steps.release.outputs.sha }}" \
+              --title "TimbreGrid $RELEASE_TAG" \
+              --notes-file "$notes_file" \
+              --prerelease \
+              dist/* \
+              registry/index.json \
+              docs/support-matrix.md
+          fi
+
+      - name: Prepare hosted registry site
+        run: |
+          mkdir -p public/registry
+          cp registry/index.json public/registry/index.json
+          cp docs/support-matrix.md public/support-matrix.md
+          {
+            printf '%s\n' '<!doctype html>'
+            printf '%s\n' '<html lang="en">'
+            printf '%s\n' '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+            printf '%s\n' '<title>TimbreGrid Registry</title></head>'
+            printf '%s\n' '<body><h1>TimbreGrid Registry</h1><ul>'
+            printf '%s\n' '<li><a href="registry/index.json">registry/index.json</a></li>'
+            printf '%s\n' '<li><a href="support-matrix.md">support-matrix.md</a></li>'
+            printf '%s\n' '</ul></body></html>'
+          } > public/index.html
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

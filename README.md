@@ -24,13 +24,32 @@ Use TimbreGrid when you want to:
 | Runtime | `fake:tts`, optional `kokoro:82m`, and optional `kitten-tts:nano-0.8` can serve `POST /v1/audio/speech`. |
 | Evaluation | Benchmark suites emit raw JSON and validation recomputes counts, failures, latency averages, memory, and prompt coverage. |
 | Compatibility | Basic OpenAI-compatible speech conformance checks and Python OpenAI SDK compatibility tests are included. |
-| Registry | YAML manifests generate `registry/index.json` and the support matrix. |
+| Registry | YAML manifests generate `registry/index.json`, the support matrix, release assets, and a hosted latest registry. |
 | Routing | `model="auto"` can choose from available models using benchmark data and manifest policy. |
 | Voice governance | Builtin and local voices are discoverable through `GET /v1/audio/voices`; local/custom voices require consent and provenance metadata. |
 
 ## Quickstart
 
 Try the compatibility stack without downloading model weights. The built-in fake adapter is deterministic and exists so manifests, benchmarks, conformance, routing, Docker, and SDK compatibility can be tested quickly.
+
+Run the published alpha container:
+
+```bash
+docker run --rm -p 8889:8889 ghcr.io/kiyeonjeon21/timbregrid:0.1.0-alpha.1
+```
+
+Then call the OpenAI-compatible speech endpoint:
+
+```bash
+curl http://localhost:8889/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{"model":"fake:tts","input":"Hello from TimbreGrid","voice":"alloy","response_format":"wav"}' \
+  --output speech.wav
+```
+
+The generated `speech.wav` is test audio, not natural speech. Install the optional Kokoro or KittenTTS adapters below when you want real local synthesis.
+
+## Run From Source
 
 Install dependencies with `uv`, then validate the built-in model manifest:
 
@@ -50,13 +69,13 @@ uv run timbregrid bench fake:tts \
 uv run timbregrid bench validate /tmp/timbregrid-bench.json
 ```
 
-Start the reference gateway:
+Start the reference gateway from source:
 
 ```bash
 uv run timbregrid serve --model fake:tts --port 8889
 ```
 
-Call the OpenAI-compatible speech endpoint:
+Call the same speech endpoint:
 
 ```bash
 curl http://localhost:8889/v1/audio/speech \
@@ -64,8 +83,6 @@ curl http://localhost:8889/v1/audio/speech \
   -d '{"model":"fake:tts","input":"Hello from TimbreGrid","voice":"alloy","response_format":"wav"}' \
   --output speech.wav
 ```
-
-The generated `speech.wav` is test audio, not natural speech. Install the optional Kokoro or KittenTTS adapters below when you want real local synthesis.
 
 ## What Works Today
 
@@ -85,7 +102,7 @@ Not included yet:
 
 - Chatterbox or Qwen3-TTS inference adapters.
 - SQLite voice metadata storage or custom voice synthesis.
-- Hosted registry publishing.
+- PyPI publishing.
 - SSE audio streaming.
 - Pipecat or LiveKit integration examples; Open WebUI is currently a docs-only TTS guide.
 
@@ -95,6 +112,12 @@ Manifests live under [`manifests/`](manifests). Generated registry artifacts liv
 
 - [`registry/index.json`](registry/index.json)
 - [`docs/support-matrix.md`](docs/support-matrix.md)
+
+The latest published registry is hosted at:
+
+- <https://kiyeonjeon21.github.io/timbregrid/registry/index.json>
+
+Versioned registry artifacts are also attached to GitHub releases.
 
 Regenerate and check them with:
 
@@ -247,7 +270,13 @@ Integration examples are intentionally narrow until streaming and broader gatewa
 
 ## Docker
 
-Run the fake gateway container:
+Run the published alpha image:
+
+```bash
+docker run --rm -p 8889:8889 ghcr.io/kiyeonjeon21/timbregrid:0.1.0-alpha.1
+```
+
+Or build the fake gateway container locally:
 
 ```bash
 docker compose up --build
@@ -292,7 +321,7 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 | Phase 0: Spec-first planning | complete | Manifest schema, speech models, benchmark suites, conformance cases, example manifests. |
 | Phase 1: Useful OSS before runtime | partial | Manifest validation, benchmark CLI, conformance tooling, submission validation, and Kokoro/KittenTTS Apple Silicon artifacts exist; broader hardware coverage still needs contributors. |
 | Phase 2: Reference gateway MVP | partial | Fake gateway, optional Kokoro and KittenTTS adapters, Docker smoke path, and benchmark-aware routing work; expressive/cloning adapters are next. |
-| Phase 3: Community registry | partial | Local registry, generated support matrix, PR/issue templates, and CI checks exist; hosted registry, link/checksum validation, and install smoke coverage remain. |
+| Phase 3: Community registry | partial | Local registry, generated support matrix, release assets, hosted latest registry, PR/issue templates, and CI checks exist; link/checksum validation and broader install smoke coverage remain. |
 | Phase 4: Voice governance and integrations | partial | Local voice records, consent/provenance metadata, `/v1/audio/voices`, and synthesis-time voice checks exist; integration examples remain. |
 
 Near-term next work:
@@ -300,7 +329,7 @@ Near-term next work:
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Add more OpenAI-compatible integration examples after the Open WebUI path is stable.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
-- Harden registry publishing, upstream metadata checks, and optional install smoke coverage.
+- Harden upstream metadata checks, optional install smoke coverage, and PyPI publishing readiness.
 
 ## Contributing
 
