@@ -32,7 +32,25 @@ Use TimbreGrid when you want to:
 
 ## Quickstart
 
-Try the compatibility stack without downloading model weights. The built-in fake adapter is deterministic and exists so manifests, benchmarks, conformance, routing, Docker, and SDK compatibility can be tested quickly.
+Run the published alpha CLI without cloning the repo:
+
+```bash
+uvx --from timbregrid==0.1.0a2 timbregrid --help
+```
+
+Diagnose any OpenAI-compatible TTS server. For example, against Speaches:
+
+```bash
+uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8000/v1 \
+  --model speaches-ai/Kokoro-82M-v1.0-ONNX \
+  --voice af_heart \
+  --response-format wav \
+  --output doctor.json
+```
+
+For a complete external-server proof with Speaches, see [`docs/external-server-proof.md`](docs/external-server-proof.md).
+
+If you do not already have a TTS server, try TimbreGrid's deterministic reference gateway without downloading model weights. The built-in fake adapter exists so manifests, benchmarks, conformance, routing, Docker, and SDK compatibility can be tested quickly.
 
 Run the latest published alpha container:
 
@@ -52,20 +70,6 @@ curl http://localhost:8889/v1/audio/speech \
 The generated `speech.wav` is test audio, not natural speech. Install the optional Kokoro or KittenTTS adapters below when you want real local synthesis.
 
 For a real voice demo, see [`docs/real-audio-demo.md`](docs/real-audio-demo.md).
-
-To diagnose an existing OpenAI-compatible TTS server instead of TimbreGrid's gateway, see [`docs/external-server-proof.md`](docs/external-server-proof.md).
-
-Run the CLI directly from GitHub while the PyPI alpha is being prepared:
-
-```bash
-uvx --from git+https://github.com/kiyeonjeon21/timbregrid timbregrid --help
-```
-
-After the PyPI alpha is published, use:
-
-```bash
-uvx --from timbregrid==0.1.0a2 timbregrid --help
-```
 
 ## Run From Source
 
@@ -121,7 +125,6 @@ Not included yet:
 
 - Chatterbox or Qwen3-TTS inference adapters.
 - SQLite voice metadata storage or custom voice synthesis.
-- Published PyPI package. The package metadata is prepared for the next alpha, but the first upload still requires maintainer Trusted Publishing setup and workflow execution.
 - SSE audio streaming.
 - Pipecat or LiveKit integration examples; Open WebUI is currently a docs-only TTS guide.
 
@@ -212,7 +215,17 @@ uv run python examples/openai_sdk_speech.py
 
 ## Doctor And Conformance
 
-For a user-facing diagnosis of a TTS server, run:
+For a user-facing diagnosis of a TTS server, run the published CLI:
+
+```bash
+uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8889/v1 \
+  --model fake:tts \
+  --voice alloy \
+  --response-format wav \
+  --output doctor.json
+```
+
+From a source checkout, use:
 
 ```bash
 uv run timbregrid doctor http://localhost:8889/v1 \
@@ -227,7 +240,7 @@ The doctor command wraps conformance results into a compatibility report for bas
 Example against an external Speaches server:
 
 ```bash
-uv run timbregrid doctor http://localhost:8000/v1 \
+uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8000/v1 \
   --model speaches-ai/Kokoro-82M-v1.0-ONNX \
   --voice af_heart \
   --response-format wav \
@@ -324,7 +337,7 @@ Integration examples are intentionally narrow until streaming and broader gatewa
 
 ## Release Status
 
-The alpha release path publishes GitHub release assets, a hosted registry, and a lightweight GHCR image. PyPI publishing is prepared through Trusted Publishing, with maintainer setup notes in [`docs/pypi-publishing.md`](docs/pypi-publishing.md). Release maintainer notes live in [`docs/release-runbook.md`](docs/release-runbook.md).
+The alpha release path publishes a PyPI package, GitHub release assets, a hosted registry, and a lightweight GHCR image. The current PyPI alpha is `0.1.0a2`. Maintainer notes live in [`docs/release-runbook.md`](docs/release-runbook.md) and [`docs/pypi-publishing.md`](docs/pypi-publishing.md).
 
 ## Docker
 
@@ -384,11 +397,11 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 
 Near-term next work:
 
-- Publish external-server doctor proof guides, starting with Speaches and then LocalAI where feasible.
+- Capture real external-server doctor reports, starting with Speaches and then LocalAI where feasible.
 - Use `timbregrid doctor` reports to harden integration examples (Open WebUI guide and compose example wired to `doctor` preflight; Pipecat and LiveKit pending).
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
 - Implement an expressive or cloning adapter, likely Chatterbox first.
-- Harden checksum metadata, optional install smoke coverage, and the first PyPI alpha release.
+- Harden checksum metadata and broader optional install smoke coverage.
 
 ## Contributing
 

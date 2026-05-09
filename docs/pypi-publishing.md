@@ -1,37 +1,42 @@
 # PyPI Publishing
 
-TimbreGrid is prepared for its first PyPI alpha upload through the manual `Publish PyPI` workflow. The package metadata intentionally excludes the KittenTTS direct wheel dependency so the built wheel is compatible with PyPI and standards-conformant package indexes.
+TimbreGrid is published to PyPI as an alpha package. Future releases should continue to use PyPI Trusted Publishing through the manual `Publish PyPI` workflow.
 
-The project is not considered published to PyPI until a maintainer configures PyPI Trusted Publishing and runs the workflow for a release tag.
+Current public alpha:
+
+```bash
+uvx --from timbregrid==0.1.0a2 timbregrid --help
+uvx --from timbregrid==0.1.0a2 timbregrid models list
+uvx --from timbregrid==0.1.0a2 timbregrid doctor --help
+```
+
+The package metadata intentionally excludes the KittenTTS direct wheel dependency so the built wheel remains compatible with PyPI and standards-conformant package indexes.
 
 References:
 
 - PyPI Trusted Publishing: <https://docs.pypi.org/trusted-publishers/using-a-publisher/>
 - Direct URL dependency limitation: <https://setuptools.pypa.io/en/stable/userguide/dependency_management.html#direct-url-dependencies>
 
-## Before First Upload
-
-1. Confirm the built wheel metadata has no direct URL `Requires-Dist` entries.
-2. Create a PyPI trusted publisher for:
-   - repository: `kiyeonjeon21/timbregrid`;
-   - workflow: `publish-pypi.yml`;
-   - environment: `pypi`;
-   - project: `timbregrid`.
-3. Keep the GitHub `pypi` environment protected with manual approval.
-4. Run the release workflow first so GitHub release assets, GHCR, and the hosted registry exist for the same tag.
-
-## Publish Flow
+## Future Release Flow
 
 1. Create or reuse a release tag.
-2. Run the `Release` workflow first so GitHub release assets, GHCR, and hosted registry are already published.
-3. Run the `Publish PyPI` workflow manually for the same tag.
-4. Verify installation in a fresh environment:
+2. Confirm the built wheel metadata has no direct URL `Requires-Dist` entries.
+3. Run the `Release` workflow first so GitHub release assets, GHCR, and hosted registry are already published.
+4. Run the `Publish PyPI` workflow manually for the same tag.
+5. Verify installation in a fresh environment, pinning the released version:
 
 ```bash
-uvx --from timbregrid timbregrid models list
+uvx --from timbregrid==<version> timbregrid models list
 ```
 
-5. Smoke optional extras separately in clean environments. Kokoro is published as `timbregrid[kokoro]`; KittenTTS is installed explicitly from a source checkout as documented in [`kitten-tts.md`](kitten-tts.md).
+6. Smoke optional extras separately in clean environments. Kokoro is published as `timbregrid[kokoro]`; KittenTTS is installed explicitly from a source checkout as documented in [`kitten-tts.md`](kitten-tts.md).
+
+The PyPI trusted publisher should stay configured as:
+
+- repository: `kiyeonjeon21/timbregrid`;
+- workflow: `publish-pypi.yml`;
+- environment: `pypi`;
+- project: `timbregrid`.
 
 ## Local Metadata Check
 

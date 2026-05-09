@@ -5,12 +5,14 @@
 Use it against TimbreGrid's reference gateway or another compatible server:
 
 ```bash
-uv run timbregrid doctor http://localhost:8889/v1 \
+uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8889/v1 \
   --model fake:tts \
   --voice alloy \
   --response-format wav \
   --output doctor.json
 ```
+
+From a TimbreGrid source checkout, use `uv run timbregrid doctor ...`.
 
 The command reports:
 

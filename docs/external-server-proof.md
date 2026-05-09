@@ -48,12 +48,14 @@ curl "$SPEACHES_BASE_URL/v1/audio/speech" \
 ## Run TimbreGrid Doctor
 
 ```bash
-uv run timbregrid doctor "$SPEACHES_BASE_URL/v1" \
+uvx --from timbregrid==0.1.0a2 timbregrid doctor "$SPEACHES_BASE_URL/v1" \
   --model speaches-ai/Kokoro-82M-v1.0-ONNX \
   --voice af_heart \
   --response-format wav \
   --output demo-assets/speaches-doctor.json
 ```
+
+From a TimbreGrid source checkout, `uv run timbregrid doctor ...` is equivalent.
 
 Expected shape:
 

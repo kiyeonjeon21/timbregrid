@@ -48,6 +48,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 - [x] Publish a hosted static registry index.
 - [x] Publish a prerelease with release artifacts and a GHCR fake-gateway image.
 - [x] Prepare PyPI-compatible package metadata by keeping KittenTTS's direct wheel install out of published extras.
+- [x] Publish the first PyPI alpha through Trusted Publishing.
 - [ ] Add stronger CI checks for upstream links, checksums, license identifiers, and optional install smoke tests.
   - Partial: license allow-listing, deterministic PR audit, scheduled/release upstream URL audit, optional dependency resolution dry-run, PyPI metadata checks, and release Docker smoke checks exist.
   - Remaining: checksum metadata checks and broader optional install smoke coverage.
@@ -98,7 +99,7 @@ Success means:
 
 1. **Real benchmark artifacts**: collect raw benchmark JSON for Kokoro, KittenTTS, and future adapters on CPU, CUDA, and additional Apple Silicon environments where contributors can provide real runs.
 2. **Expressive/cloning adapter**: add Chatterbox or a similar backend behind optional dependencies, using the existing voice governance checks.
-3. **Registry hardening**: add checksum metadata checks, broader optional install smoke coverage, and complete the first PyPI alpha release through Trusted Publishing.
+3. **Registry hardening**: add checksum metadata checks, broader optional install smoke coverage, and periodic release install smoke checks.
 4. **Integration examples**: use doctor reports to harden external-server proofs and the Open WebUI guide, then add Pipecat and LiveKit docs or examples after another real adapter path is stable.
 
 ## Technical Choices

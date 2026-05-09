@@ -72,7 +72,7 @@ See [`docs/doctor.md`](../doctor.md) for the full readiness label semantics.
 The same preflight can be used for an external TTS server such as Speaches:
 
 ```bash
-uv run timbregrid doctor http://localhost:8000/v1 \
+uvx --from timbregrid==0.1.0a2 timbregrid doctor http://localhost:8000/v1 \
   --model speaches-ai/Kokoro-82M-v1.0-ONNX \
   --voice af_heart \
   --response-format wav \
