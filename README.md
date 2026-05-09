@@ -285,6 +285,7 @@ Use `response_format="wav"` or `response_format="pcm"` and a KittenTTS voice suc
 TimbreGrid can be used as a local OpenAI-compatible TTS backend for tools that call `/v1/audio/speech`.
 
 - [Open WebUI integration guide](docs/integrations/open-webui.md)
+- [Open WebUI + TimbreGrid compose example](examples/open-webui-compose.yml)
 
 Integration examples are intentionally narrow until streaming and broader gateway compatibility stabilize.
 
@@ -351,7 +352,7 @@ Detailed phases and checklists live in [`docs/roadmap.md`](docs/roadmap.md). Pub
 Near-term next work:
 
 - Collect more real raw benchmark examples for CPU, CUDA, and additional Apple Silicon environments.
-- Use `timbregrid doctor` reports to harden Open WebUI, Pipecat, and LiveKit integration examples.
+- Use `timbregrid doctor` reports to harden integration examples (Open WebUI guide and compose example wired to `doctor` preflight; Pipecat and LiveKit pending).
 - Implement an expressive or cloning adapter, likely Chatterbox first.
 - Harden checksum metadata, optional install smoke coverage, and PyPI publishing readiness.
 

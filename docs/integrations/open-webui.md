@@ -40,6 +40,32 @@ curl http://127.0.0.1:8889/v1/audio/speech \
 
 For the fake adapter, use `model="fake:tts"` and `voice="alloy"`. For Kokoro, use `model="kokoro:82m"` and a Kokoro voice such as `af_heart`.
 
+## Preflight: Verify Compatibility With `timbregrid doctor`
+
+Before configuring Open WebUI, confirm TimbreGrid answers `/v1/audio/speech` the way Open WebUI expects:
+
+```bash
+uv run timbregrid doctor http://127.0.0.1:8889/v1 \
+  --model fake:tts \
+  --voice alloy \
+  --response-format wav \
+  --output doctor.json
+```
+
+Use `--model kitten-tts:nano-0.8 --voice Jasper` for KittenTTS or `--model kokoro:82m --voice af_heart` for Kokoro.
+
+The command prints a per-integration readiness line. Look for `open_webui_tts`:
+
+```text
+OK doctor: 9/9 conformance cases passed
+open_webui_tts: ready - basic OpenAI-compatible /v1/audio/speech request returned audio
+pipecat_openai_tts: likely_ready - OpenAI-style speech request, speed, and instructions fields passed basic checks
+```
+
+`ready` means it is safe to proceed to the Admin Panel steps below. `failed` means Open WebUI will not work with this configuration; open `doctor.json` and inspect `conformance.cases[].failure_reason` for the underlying cause before changing anything in Open WebUI.
+
+See [`docs/doctor.md`](../doctor.md) for the full readiness label semantics.
+
 ## Configure Open WebUI
 
 In Open WebUI, open `Admin Panel` -> `Settings` -> `Audio` and set:
@@ -75,6 +101,7 @@ Use `http://127.0.0.1:8889/v1` instead when Open WebUI is not running inside Doc
 
 ## Notes
 
+- For a one-command both-stack run, see [`examples/open-webui-compose.yml`](../../examples/open-webui-compose.yml). It boots TimbreGrid (with `fake:tts`) and Open WebUI together with the right `AUDIO_TTS_*` env vars already wired up.
 - Open WebUI must be able to reach the TimbreGrid process from its own network namespace.
 - Set `response_format` to `wav` for Kokoro and KittenTTS. The OpenAI TTS default is often `mp3`, which those adapters do not currently emit.
 - TimbreGrid validates known voices for the selected model. Use `/v1/audio/voices?model=<model-id>` to list available voices.
