@@ -13,7 +13,7 @@ WORKDIR /app
 
 RUN python -m pip install --no-cache-dir uv
 
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src ./src
 COPY manifests ./manifests
 COPY schemas ./schemas
