@@ -1,0 +1,11 @@
+services:
+  timbregrid:
+    build:
+      context: .
+    image: timbregrid:local
+    environment:
+      TIMBREGRID_MODEL: fake:tts
+      TIMBREGRID_HOST: 0.0.0.0
+      TIMBREGRID_PORT: "8889"
+    ports:
+      - "8889:8889"

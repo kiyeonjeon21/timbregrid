@@ -3,7 +3,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from timbregrid.cli import app
+from timbregrid.cli import app, resolve_serve_config
 from timbregrid.conformance import ConformanceCaseResult, ConformanceReport
 
 
@@ -47,6 +47,34 @@ def test_models_inspect_cli_writes_json() -> None:
     assert body["id"] == "kokoro:82m"
     assert body["executable"] is True
     assert body["requires_extra"] == "kokoro"
+
+
+def test_resolve_serve_config_defaults(monkeypatch) -> None:
+    monkeypatch.delenv("TIMBREGRID_MODEL", raising=False)
+    monkeypatch.delenv("TIMBREGRID_HOST", raising=False)
+    monkeypatch.delenv("TIMBREGRID_PORT", raising=False)
+
+    assert resolve_serve_config() == ("fake:tts", "127.0.0.1", 8889)
+
+
+def test_resolve_serve_config_uses_env(monkeypatch) -> None:
+    monkeypatch.setenv("TIMBREGRID_MODEL", "kokoro:82m")
+    monkeypatch.setenv("TIMBREGRID_HOST", "0.0.0.0")
+    monkeypatch.setenv("TIMBREGRID_PORT", "9999")
+
+    assert resolve_serve_config() == ("kokoro:82m", "0.0.0.0", 9999)
+
+
+def test_resolve_serve_config_prefers_arguments(monkeypatch) -> None:
+    monkeypatch.setenv("TIMBREGRID_MODEL", "kokoro:82m")
+    monkeypatch.setenv("TIMBREGRID_HOST", "0.0.0.0")
+    monkeypatch.setenv("TIMBREGRID_PORT", "9999")
+
+    assert resolve_serve_config("fake:tts", "127.0.0.1", 7777) == (
+        "fake:tts",
+        "127.0.0.1",
+        7777,
+    )
 
 
 def test_conformance_cli_writes_json_report(tmp_path: Path, monkeypatch) -> None:

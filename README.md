@@ -38,6 +38,31 @@ uv run timbregrid conformance http://localhost:8889/v1 \
   --output /tmp/timbregrid-conformance.json
 ```
 
+### Docker Quickstart
+
+Run the fake gateway container:
+
+```bash
+docker compose up --build
+```
+
+In another shell:
+
+```bash
+curl http://localhost:8889/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{"model":"fake:tts","input":"Hello from Docker","voice":"alloy","response_format":"wav"}' \
+  --output docker-speech.wav
+
+uv run timbregrid conformance http://localhost:8889/v1 \
+  --model fake:tts \
+  --voice alloy \
+  --response-format wav \
+  --output /tmp/timbregrid-docker-conformance.json
+```
+
+The Docker image is intentionally a lightweight `fake:tts` gateway. It does not include Kokoro, `espeak-ng`, or PyTorch-class model dependencies.
+
 ### Current MVP Scope
 
 Works today:
@@ -52,7 +77,7 @@ Works today:
 Not included yet:
 
 - KittenTTS, Chatterbox, or Qwen3-TTS inference adapters;
-- Docker images, SQLite metadata storage, hosted registry, or voice provenance storage;
+- SQLite metadata storage, hosted registry, or voice provenance storage;
 - SSE audio streaming or long-form dialogue routing.
 
 `manifests/kokoro-82m.yaml` is executable only when optional Kokoro dependencies are installed.
@@ -466,7 +491,7 @@ Initial implementation should prefer **FastAPI** because the model wrappers and 
 - [ ] KittenTTS adapter for edge/CPU lane;
 - [ ] one expressive or cloning backend: Chatterbox or Qwen3-TTS;
 - [ ] `model="auto"` routing by purpose, hardware, license policy, and benchmark data (partial: `auto` resolves to the serve default);
-- [ ] Docker image with one-command local serving.
+- [x] Docker image with one-command local serving for the fake gateway.
 
 ### Phase 3: Community Registry
 
@@ -511,10 +536,9 @@ Success means:
 
 ## Next Milestones
 
-1. **Docker + install docs**: provide a one-command fake gateway container and documented Kokoro host setup.
-2. **Registry index + support matrix**: generate a static model index and support matrix from manifests.
-3. **Routing policy**: make `model="auto"` choose adapters by purpose, hardware, license policy, and benchmark data.
-4. **Voice provenance**: add local voice records, consent metadata, and `/v1/audio/voices`.
+1. **Registry index + support matrix**: generate a static model index and support matrix from manifests.
+2. **Routing policy**: make `model="auto"` choose adapters by purpose, hardware, license policy, and benchmark data.
+3. **Voice provenance**: add local voice records, consent metadata, and `/v1/audio/voices`.
 
 ## Technical Choices
 

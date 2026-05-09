@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -108,13 +109,43 @@ def conformance(
 
 @app.command()
 def serve(
-    model: Annotated[str, typer.Option("--model")] = "fake:tts",
-    host: Annotated[str, typer.Option("--host")] = "127.0.0.1",
-    port: Annotated[int, typer.Option("--port")] = 8889,
+    model: Annotated[str | None, typer.Option("--model")] = None,
+    host: Annotated[str | None, typer.Option("--host")] = None,
+    port: Annotated[int | None, typer.Option("--port")] = None,
 ) -> None:
     import uvicorn
 
-    uvicorn.run(create_app(default_model=model), host=host, port=port)
+    try:
+        resolved_model, resolved_host, resolved_port = resolve_serve_config(model, host, port)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+    uvicorn.run(create_app(default_model=resolved_model), host=resolved_host, port=resolved_port)
+
+
+def resolve_serve_config(
+    model: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
+) -> tuple[str, str, int]:
+    resolved_model = model or os.environ.get("TIMBREGRID_MODEL") or "fake:tts"
+    resolved_host = host or os.environ.get("TIMBREGRID_HOST") or "127.0.0.1"
+    resolved_port = port if port is not None else _env_port()
+    return resolved_model, resolved_host, resolved_port
+
+
+def _env_port() -> int:
+    raw = os.environ.get("TIMBREGRID_PORT")
+    if raw is None or raw == "":
+        return 8889
+    try:
+        port = int(raw)
+    except ValueError as exc:
+        raise ValueError("TIMBREGRID_PORT must be an integer") from exc
+    if port <= 0 or port > 65535:
+        raise ValueError("TIMBREGRID_PORT must be between 1 and 65535")
+    return port
 
 
 app.add_typer(manifest_app, name="manifest")
