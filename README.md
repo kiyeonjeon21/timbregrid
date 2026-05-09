@@ -28,6 +28,16 @@ curl http://localhost:8889/v1/audio/speech \
 
 The fake adapter generates deterministic local audio bytes without downloading model weights. It is meant for schema, CLI, conformance, benchmark, and SDK compatibility work.
 
+Run the speech conformance suite against the local gateway and write a reusable JSON report:
+
+```bash
+uv run timbregrid conformance http://localhost:8889/v1 \
+  --model fake:tts \
+  --voice alloy \
+  --response-format wav \
+  --output /tmp/timbregrid-conformance.json
+```
+
 ### Current MVP Scope
 
 Works today:
@@ -35,7 +45,7 @@ Works today:
 - validate TimbreGrid model manifests from YAML;
 - run a fake-adapter benchmark suite and write raw JSON output;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
-- run a small conformance suite against that endpoint;
+- run a speech conformance suite with per-case JSON reports against that endpoint;
 - verify Python OpenAI SDK compatibility against the local gateway.
 
 Not included yet:

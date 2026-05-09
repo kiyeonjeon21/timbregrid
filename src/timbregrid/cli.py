@@ -7,7 +7,7 @@ from typing import Annotated
 import typer
 
 from timbregrid.bench import run_benchmark, write_benchmark
-from timbregrid.conformance import run_conformance
+from timbregrid.conformance import run_conformance, write_conformance_report
 from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
 
@@ -54,15 +54,31 @@ def bench(
 def conformance(
     base_url: Annotated[str, typer.Argument()],
     endpoint: Annotated[str, typer.Option("--endpoint")] = "audio.speech",
+    model: Annotated[str, typer.Option("--model")] = "fake:tts",
+    voice: Annotated[str, typer.Option("--voice")] = "alloy",
+    response_format: Annotated[str, typer.Option("--response-format")] = "wav",
+    timeout: Annotated[float, typer.Option("--timeout")] = 10.0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
     try:
-        result = run_conformance(base_url, endpoint=endpoint)
+        result = run_conformance(
+            base_url,
+            endpoint=endpoint,
+            model=model,
+            voice=voice,
+            response_format=response_format,
+            timeout=timeout,
+        )
     except Exception as exc:
         typer.echo(f"Conformance failed: {exc}", err=True)
         raise typer.Exit(1) from exc
 
+    if output is not None:
+        write_conformance_report(result, output)
+        typer.echo(f"Wrote {output}")
+
     if result.ok:
-        typer.echo(f"OK {result.passed} conformance cases passed")
+        typer.echo(f"OK {result.passed}/{result.summary['total']} conformance cases passed")
         return
 
     for failure in result.failures:
