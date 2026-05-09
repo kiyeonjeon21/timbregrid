@@ -2,7 +2,7 @@
 
 TimbreGrid is an open compatibility and evaluation layer for open-source text-to-speech systems.
 
-It provides model manifests, benchmark tooling, OpenAI-compatible speech conformance checks, benchmark-aware routing, and a small reference `/v1/audio/speech` gateway.
+It provides model manifests, benchmark tooling, basic OpenAI-compatible speech conformance checks, benchmark-aware routing, and a small reference `/v1/audio/speech` gateway.
 
 **Status**: early MVP. The fake gateway, manifest registry, benchmark CLI, conformance suite, benchmark validation, and optional Kokoro adapter are implemented. KittenTTS, Chatterbox, and Qwen3-TTS are currently manifest-only examples.
 
@@ -49,7 +49,7 @@ The fake adapter generates deterministic local audio bytes without downloading m
 - Generate a static registry index and support matrix from manifests.
 - Run fake-adapter benchmark suites and write raw JSON output.
 - Validate benchmark JSON examples and submissions for model ids, suites, hardware profiles, prompts, and aggregate metrics.
-- Run OpenAI-compatible speech conformance checks.
+- Run basic OpenAI-compatible speech conformance checks.
 - Serve `POST /v1/audio/speech` for `fake:tts`.
 - Verify Python OpenAI SDK compatibility against the local gateway.
 - Route `model="auto"` requests by benchmark data, manifest capabilities, response format, availability, and license policy.
@@ -172,7 +172,10 @@ Try the adapter:
 ```bash
 uv run timbregrid models inspect kokoro:82m
 uv run timbregrid manifest validate manifests/kokoro-82m.yaml
-uv run timbregrid bench kokoro:82m --suite realtime-agent --output /tmp/kokoro.json
+uv run timbregrid bench kokoro:82m \
+  --suite realtime-agent \
+  --hardware-profile cpu \
+  --output /tmp/kokoro.json
 uv run timbregrid serve --model kokoro:82m --port 8889
 ```
 

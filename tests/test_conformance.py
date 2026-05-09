@@ -11,13 +11,17 @@ from timbregrid.gateway import create_app
 def test_build_speech_cases_uses_configured_model_voice_and_format() -> None:
     cases = build_speech_cases(model="custom:model", voice="custom_voice", response_format="pcm")
 
-    configured = next(case for case in cases if case.name == "configured response_format")
+    configured = next(case for case in cases if case.name == "required fields with response_format")
     assert configured.payload["model"] == "custom:model"
     assert configured.payload["voice"] == "custom_voice"
     assert configured.payload["response_format"] == "pcm"
 
+    success_cases = [case for case in cases if case.expectation == "success"]
+    assert all(case.payload["response_format"] == "pcm" for case in success_cases)
+
     missing_model = next(case for case in cases if case.name == "missing model")
     assert "model" not in missing_model.payload
+    assert missing_model.payload["response_format"] == "pcm"
 
 
 def test_run_conformance_against_fake_gateway() -> None:

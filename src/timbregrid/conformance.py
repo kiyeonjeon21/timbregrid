@@ -81,36 +81,37 @@ def build_speech_cases(
         "model": model,
         "input": "Hello from the TimbreGrid speech conformance suite.",
         "voice": voice,
+        "response_format": response_format,
     }
     return [
         ConformanceCase(
-            name="minimal request",
+            name="required fields with response_format",
             payload=base,
             expectation="success",
         ),
         ConformanceCase(
-            name="configured response_format",
-            payload={**base, "response_format": response_format},
+            name="speed field",
+            payload={**base, "speed": 1.1},
             expectation="success",
         ),
         ConformanceCase(
             name="instructions field",
-            payload={**base, "response_format": response_format, "instructions": "Speak clearly."},
+            payload={**base, "instructions": "Speak clearly."},
             expectation="success",
         ),
         ConformanceCase(
             name="missing model",
-            payload={"input": base["input"], "voice": voice},
+            payload={"input": base["input"], "voice": voice, "response_format": response_format},
             expectation="error",
         ),
         ConformanceCase(
             name="missing input",
-            payload={"model": model, "voice": voice},
+            payload={"model": model, "voice": voice, "response_format": response_format},
             expectation="error",
         ),
         ConformanceCase(
             name="missing voice",
-            payload={"model": model, "input": base["input"]},
+            payload={"model": model, "input": base["input"], "response_format": response_format},
             expectation="error",
         ),
         ConformanceCase(

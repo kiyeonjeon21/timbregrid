@@ -15,6 +15,8 @@ uv run timbregrid conformance http://localhost:8889/v1 \
 
 For another server, keep the base URL pointed at that server and set `--model`, `--voice`, and `--response-format` to values it supports.
 
+Success cases send the configured `--response-format`, so servers that do not support the OpenAI default `mp3` format can still be checked with `wav` or `pcm`.
+
 The command exits with status `0` only when all cases pass. When `--output` is provided, it writes a JSON report with the request payload, status code, content type, content length, elapsed time, and per-case failure message.
 
 The conformance suite is intentionally small and dependency-light so external servers can run it in their own CI before adopting TimbreGrid manifests or benchmark submissions.

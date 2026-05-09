@@ -63,7 +63,7 @@ Roadmap status is conservative: an item is complete only when the implementation
 The first public milestone should stay small, testable, and useful outside this repo:
 
 ```bash
-uv sync --extra kokoro
+uv sync --all-groups --extra kokoro
 uv run timbregrid models inspect kokoro:82m
 uv run timbregrid manifest validate manifests/kokoro-82m.yaml
 uv run timbregrid bench kokoro:82m \

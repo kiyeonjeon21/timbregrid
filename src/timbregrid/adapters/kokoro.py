@@ -83,7 +83,7 @@ class KokoroAdapter:
         )
 
         for item in generator:
-            audio = item[2] if isinstance(item, tuple) and len(item) >= 3 else item
+            audio = _pipeline_audio(item)
             pcm, samples = _audio_to_pcm16(audio)
             if samples == 0:
                 continue
@@ -110,6 +110,15 @@ class KokoroAdapter:
             time_to_first_audio_ms=first_audio_ms or 0.0,
             model=self.id,
         )
+
+
+def _pipeline_audio(item: Any) -> Any:
+    audio = getattr(item, "audio", None)
+    if audio is not None:
+        return audio
+    if isinstance(item, tuple) and len(item) >= 3:
+        return item[2]
+    return item
 
 
 def _audio_to_pcm16(audio: Any) -> tuple[bytes, int]:
