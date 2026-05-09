@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH" \
     TIMBREGRID_MODEL=fake:tts \
     TIMBREGRID_HOST=0.0.0.0 \
-    TIMBREGRID_PORT=8889
+    TIMBREGRID_PORT=8889 \
+    TIMBREGRID_BENCHMARK_DIR=benchmarks/examples
 
 WORKDIR /app
 
@@ -16,6 +17,7 @@ COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY manifests ./manifests
 COPY schemas ./schemas
+COPY benchmarks ./benchmarks
 
 RUN uv sync --frozen --no-dev
 

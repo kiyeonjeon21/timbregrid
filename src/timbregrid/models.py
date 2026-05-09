@@ -105,6 +105,7 @@ class SpeechRequest(BaseModel):
     purpose: RoutingPurpose | None = None
     target_latency_ms: Annotated[int | None, Field(gt=0)] = None
     license_policy: LicensePolicy = "any"
+    hardware_profile: str | None = None
 
     @field_validator("stream_format")
     @classmethod

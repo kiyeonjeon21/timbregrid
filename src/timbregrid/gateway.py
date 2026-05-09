@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -8,6 +9,7 @@ from fastapi.responses import Response
 from pydantic import ValidationError
 
 from timbregrid.adapters.base import AdapterDependencyError
+from timbregrid.benchmark_store import BenchmarkStoreError
 from timbregrid.errors import openai_error
 from timbregrid.models import SpeechRequest
 from timbregrid.registry import get_adapter
@@ -17,7 +19,11 @@ from timbregrid.routing import RouteNotFound, resolve_route
 SUPPORTED_OUTPUT_FORMATS = {"mp3", "wav", "pcm"}
 
 
-def create_app(default_model: str = "fake:tts") -> FastAPI:
+def create_app(
+    default_model: str = "fake:tts",
+    benchmark_dir: Path | None = Path("benchmarks/examples"),
+    benchmark_suite: str = "realtime-agent",
+) -> FastAPI:
     app = FastAPI(title="TimbreGrid", version="0.1.0")
 
     @app.exception_handler(RequestValidationError)
@@ -62,12 +68,24 @@ def create_app(default_model: str = "fake:tts") -> FastAPI:
             )
 
         try:
-            route = resolve_route(request, default_model=default_model)
+            route = resolve_route(
+                request,
+                default_model=default_model,
+                benchmark_dir=benchmark_dir,
+                suite=benchmark_suite,
+            )
         except RouteNotFound as exc:
             return openai_error(
                 str(exc),
                 param="model",
                 code="no_route_found",
+            )
+        except BenchmarkStoreError as exc:
+            return openai_error(
+                str(exc),
+                status_code=500,
+                param="model",
+                code="benchmark_store_error",
             )
 
         selected_model = route.selected_model

@@ -116,6 +116,9 @@ def explain_route(
     purpose: Annotated[str | None, typer.Option("--purpose")] = None,
     target_latency_ms: Annotated[int | None, typer.Option("--target-latency-ms")] = None,
     license_policy: Annotated[str, typer.Option("--license-policy")] = "any",
+    hardware_profile: Annotated[str | None, typer.Option("--hardware-profile")] = None,
+    benchmark_dir: Annotated[Path | None, typer.Option("--benchmark-dir")] = Path("benchmarks/examples"),
+    benchmark_suite: Annotated[str, typer.Option("--suite")] = "realtime-agent",
     default_model: Annotated[str, typer.Option("--default-model")] = "fake:tts",
     input_text: Annotated[str, typer.Option("--input")] = "Hello from TimbreGrid",
 ) -> None:
@@ -128,8 +131,14 @@ def explain_route(
             purpose=purpose,
             target_latency_ms=target_latency_ms,
             license_policy=license_policy,
+            hardware_profile=hardware_profile,
         )
-        decision = resolve_route(request, default_model=default_model)
+        decision = resolve_route(
+            request,
+            default_model=default_model,
+            benchmark_dir=benchmark_dir,
+            suite=benchmark_suite,
+        )
     except (ValueError, RouteNotFound) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
@@ -178,27 +187,39 @@ def serve(
     model: Annotated[str | None, typer.Option("--model")] = None,
     host: Annotated[str | None, typer.Option("--host")] = None,
     port: Annotated[int | None, typer.Option("--port")] = None,
+    benchmark_dir: Annotated[Path | None, typer.Option("--benchmark-dir")] = None,
 ) -> None:
     import uvicorn
 
     try:
-        resolved_model, resolved_host, resolved_port = resolve_serve_config(model, host, port)
+        resolved_model, resolved_host, resolved_port, resolved_benchmark_dir = resolve_serve_config(
+            model,
+            host,
+            port,
+            benchmark_dir,
+        )
     except ValueError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
 
-    uvicorn.run(create_app(default_model=resolved_model), host=resolved_host, port=resolved_port)
+    uvicorn.run(
+        create_app(default_model=resolved_model, benchmark_dir=resolved_benchmark_dir),
+        host=resolved_host,
+        port=resolved_port,
+    )
 
 
 def resolve_serve_config(
     model: str | None = None,
     host: str | None = None,
     port: int | None = None,
-) -> tuple[str, str, int]:
+    benchmark_dir: Path | None = None,
+) -> tuple[str, str, int, Path | None]:
     resolved_model = model or os.environ.get("TIMBREGRID_MODEL") or "fake:tts"
     resolved_host = host or os.environ.get("TIMBREGRID_HOST") or "127.0.0.1"
     resolved_port = port if port is not None else _env_port()
-    return resolved_model, resolved_host, resolved_port
+    resolved_benchmark_dir = benchmark_dir if benchmark_dir is not None else _env_benchmark_dir()
+    return resolved_model, resolved_host, resolved_port, resolved_benchmark_dir
 
 
 def _env_port() -> int:
@@ -212,6 +233,15 @@ def _env_port() -> int:
     if port <= 0 or port > 65535:
         raise ValueError("TIMBREGRID_PORT must be between 1 and 65535")
     return port
+
+
+def _env_benchmark_dir() -> Path | None:
+    raw = os.environ.get("TIMBREGRID_BENCHMARK_DIR")
+    if raw is None:
+        return Path("benchmarks/examples")
+    if raw == "":
+        return None
+    return Path(raw)
 
 
 app.add_typer(manifest_app, name="manifest")

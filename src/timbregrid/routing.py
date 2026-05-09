@@ -4,6 +4,11 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from timbregrid.benchmark_store import (
+    BenchmarkSummary,
+    best_benchmark,
+    load_benchmark_results,
+)
 from timbregrid.manifest import ManifestError, load_manifest
 from timbregrid.models import LicensePolicy, ModelManifest, RoutingPurpose, SpeechRequest
 from timbregrid.registry import ModelEntry, list_models
@@ -39,6 +44,8 @@ class RouteDecision:
     selected_model: str
     reason: str
     applied_hints: dict[str, Any]
+    benchmark_data: str
+    selected_benchmark: BenchmarkSummary | None
     skipped_candidates: list[SkippedCandidate]
 
     def to_dict(self) -> dict[str, Any]:
@@ -47,6 +54,10 @@ class RouteDecision:
             "selected_model": self.selected_model,
             "reason": self.reason,
             "applied_hints": self.applied_hints,
+            "benchmark_data": self.benchmark_data,
+            "selected_benchmark": (
+                self.selected_benchmark.to_dict() if self.selected_benchmark is not None else None
+            ),
             "skipped_candidates": [candidate.to_dict() for candidate in self.skipped_candidates],
         }
 
@@ -57,13 +68,21 @@ class _Candidate:
     manifest: ModelManifest
 
 
-def resolve_route(request: SpeechRequest, *, default_model: str = "fake:tts") -> RouteDecision:
+def resolve_route(
+    request: SpeechRequest,
+    *,
+    default_model: str = "fake:tts",
+    benchmark_dir: Path | None = None,
+    suite: str = "realtime-agent",
+) -> RouteDecision:
     if request.model != "auto":
         return RouteDecision(
             requested_model=request.model,
             selected_model=request.model,
             reason="explicit model requested",
-            applied_hints=_applied_hints(request),
+            applied_hints=_applied_hints(request, suite),
+            benchmark_data="not_used",
+            selected_benchmark=None,
             skipped_candidates=[],
         )
 
@@ -80,12 +99,26 @@ def resolve_route(request: SpeechRequest, *, default_model: str = "fake:tts") ->
     if not matches:
         raise RouteNotFound("No route found for model='auto' with the requested hints", skipped)
 
-    selected = sorted(matches, key=lambda candidate: _candidate_sort_key(candidate, request, default_model))[0]
+    benchmarks = _candidate_benchmarks(matches, request, benchmark_dir, suite)
+    selected = sorted(
+        matches,
+        key=lambda candidate: _candidate_sort_key(candidate, request, default_model, benchmarks),
+    )[0]
+    selected_benchmark = benchmarks.get(selected.entry.id)
+    benchmark_data = _benchmark_data_status(benchmark_dir, benchmarks, selected_benchmark)
     return RouteDecision(
         requested_model=request.model,
         selected_model=selected.entry.id,
-        reason=_selection_reason(selected, request, len(matches)),
-        applied_hints=_applied_hints(request),
+        reason=_selection_reason(
+            selected,
+            request,
+            len(matches),
+            benchmark_data=benchmark_data,
+            benchmark=selected_benchmark,
+        ),
+        applied_hints=_applied_hints(request, suite),
+        benchmark_data=benchmark_data,
+        selected_benchmark=selected_benchmark,
         skipped_candidates=skipped,
     )
 
@@ -128,11 +161,42 @@ def _candidate_sort_key(
     candidate: _Candidate,
     request: SpeechRequest,
     default_model: str,
-) -> tuple[int, int, str]:
+    benchmarks: dict[str, BenchmarkSummary],
+) -> tuple[float, float, float, float, float, int, int, str]:
+    benchmark = benchmarks.get(candidate.entry.id)
+    benchmark_priority = 0.0
+    latency_miss = 0.0
+    failure_rate = 0.0
+    time_to_first_audio_ms = 0.0
+    real_time_factor = 0.0
+    if request.target_latency_ms is not None and benchmarks:
+        if benchmark is None:
+            benchmark_priority = 1.0
+            latency_miss = 1.0
+            failure_rate = float("inf")
+            time_to_first_audio_ms = float("inf")
+            real_time_factor = float("inf")
+        else:
+            latency_miss = (
+                0.0 if benchmark.time_to_first_audio_ms <= request.target_latency_ms else 1.0
+            )
+            failure_rate = benchmark.failure_rate
+            time_to_first_audio_ms = benchmark.time_to_first_audio_ms
+            real_time_factor = benchmark.real_time_factor
+
     real_adapter_score = 1 if candidate.entry.id != "fake:tts" else 0
     purpose_score = _purpose_score(candidate.manifest, request.purpose)
     default_score = 1 if candidate.entry.id == default_model else 0
-    return (-real_adapter_score, -(purpose_score + default_score), candidate.entry.id)
+    return (
+        benchmark_priority,
+        latency_miss,
+        failure_rate,
+        time_to_first_audio_ms,
+        real_time_factor,
+        -real_adapter_score,
+        -(purpose_score + default_score),
+        candidate.entry.id,
+    )
 
 
 def _purpose_score(manifest: ModelManifest, purpose: RoutingPurpose | None) -> int:
@@ -176,24 +240,74 @@ def _matches_license(manifest: ModelManifest, license_policy: LicensePolicy) -> 
     return False
 
 
-def _selection_reason(candidate: _Candidate, request: SpeechRequest, matched_count: int) -> str:
+def _selection_reason(
+    candidate: _Candidate,
+    request: SpeechRequest,
+    matched_count: int,
+    *,
+    benchmark_data: str,
+    benchmark: BenchmarkSummary | None,
+) -> str:
     parts = [
         f"selected {candidate.entry.id}",
         f"from {matched_count} matching candidate{'s' if matched_count != 1 else ''}",
         f"response_format={request.response_format}",
         f"license_policy={request.license_policy}",
+        f"benchmark_data={benchmark_data}",
     ]
     if request.purpose is not None:
         parts.append(f"purpose={request.purpose}")
     if request.target_latency_ms is not None:
         parts.append(f"target_latency_ms={request.target_latency_ms}")
+    if request.hardware_profile is not None:
+        parts.append(f"hardware_profile={request.hardware_profile}")
+    if benchmark is not None:
+        parts.append(f"benchmark_ttfa_ms={benchmark.time_to_first_audio_ms:g}")
+        if benchmark.hardware_profile is not None:
+            parts.append(f"benchmark_profile={benchmark.hardware_profile}")
     return "; ".join(parts)
 
 
-def _applied_hints(request: SpeechRequest) -> dict[str, Any]:
+def _applied_hints(request: SpeechRequest, suite: str) -> dict[str, Any]:
     return {
         "purpose": request.purpose,
         "target_latency_ms": request.target_latency_ms,
         "license_policy": request.license_policy,
+        "hardware_profile": request.hardware_profile,
         "response_format": request.response_format,
+        "benchmark_suite": suite,
     }
+
+
+def _candidate_benchmarks(
+    candidates: list[_Candidate],
+    request: SpeechRequest,
+    benchmark_dir: Path | None,
+    suite: str,
+) -> dict[str, BenchmarkSummary]:
+    results = load_benchmark_results(benchmark_dir)
+    benchmarks: dict[str, BenchmarkSummary] = {}
+    for candidate in candidates:
+        benchmark = best_benchmark(
+            results,
+            model=candidate.entry.id,
+            suite=suite,
+            hardware_profile=request.hardware_profile,
+        )
+        if benchmark is not None:
+            benchmarks[candidate.entry.id] = benchmark
+    return benchmarks
+
+
+def _benchmark_data_status(
+    benchmark_dir: Path | None,
+    benchmarks: dict[str, BenchmarkSummary],
+    selected_benchmark: BenchmarkSummary | None,
+) -> str:
+    if benchmark_dir is None:
+        return "not_configured"
+    if selected_benchmark is not None:
+        return "used"
+    if benchmarks:
+        return "available"
+    return "missing"

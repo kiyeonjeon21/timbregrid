@@ -41,6 +41,7 @@ def test_speech_endpoint_routes_auto_to_available_model(monkeypatch) -> None:
     assert response.status_code == 200
     assert response.headers["x-timbregrid-model"] == "fake:tts"
     assert "selected fake:tts" in response.headers["x-timbregrid-route-reason"]
+    assert "benchmark_data=used" in response.headers["x-timbregrid-route-reason"]
 
 
 def test_speech_endpoint_returns_no_route_for_auto(monkeypatch) -> None:

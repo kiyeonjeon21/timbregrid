@@ -7,5 +7,6 @@ services:
       TIMBREGRID_MODEL: fake:tts
       TIMBREGRID_HOST: 0.0.0.0
       TIMBREGRID_PORT: "8889"
+      TIMBREGRID_BENCHMARK_DIR: benchmarks/examples
     ports:
       - "8889:8889"

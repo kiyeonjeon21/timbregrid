@@ -115,6 +115,10 @@ def test_route_explain_cli_writes_json(monkeypatch) -> None:
             "realtime",
             "--license-policy",
             "commercial_ok",
+            "--target-latency-ms",
+            "350",
+            "--hardware-profile",
+            "generic-ci",
         ],
     )
 
@@ -122,6 +126,9 @@ def test_route_explain_cli_writes_json(monkeypatch) -> None:
     body = json.loads(result.stdout)
     assert body["selected_model"] == "fake:tts"
     assert body["applied_hints"]["purpose"] == "realtime"
+    assert body["applied_hints"]["hardware_profile"] == "generic-ci"
+    assert body["benchmark_data"] == "used"
+    assert body["selected_benchmark"]["hardware_profile"] == "generic-ci"
 
 
 def test_route_explain_cli_returns_no_route(monkeypatch) -> None:
@@ -151,27 +158,46 @@ def test_resolve_serve_config_defaults(monkeypatch) -> None:
     monkeypatch.delenv("TIMBREGRID_MODEL", raising=False)
     monkeypatch.delenv("TIMBREGRID_HOST", raising=False)
     monkeypatch.delenv("TIMBREGRID_PORT", raising=False)
+    monkeypatch.delenv("TIMBREGRID_BENCHMARK_DIR", raising=False)
 
-    assert resolve_serve_config() == ("fake:tts", "127.0.0.1", 8889)
+    assert resolve_serve_config() == (
+        "fake:tts",
+        "127.0.0.1",
+        8889,
+        Path("benchmarks/examples"),
+    )
 
 
 def test_resolve_serve_config_uses_env(monkeypatch) -> None:
     monkeypatch.setenv("TIMBREGRID_MODEL", "kokoro:82m")
     monkeypatch.setenv("TIMBREGRID_HOST", "0.0.0.0")
     monkeypatch.setenv("TIMBREGRID_PORT", "9999")
+    monkeypatch.setenv("TIMBREGRID_BENCHMARK_DIR", "benchmarks/custom")
 
-    assert resolve_serve_config() == ("kokoro:82m", "0.0.0.0", 9999)
+    assert resolve_serve_config() == (
+        "kokoro:82m",
+        "0.0.0.0",
+        9999,
+        Path("benchmarks/custom"),
+    )
 
 
 def test_resolve_serve_config_prefers_arguments(monkeypatch) -> None:
     monkeypatch.setenv("TIMBREGRID_MODEL", "kokoro:82m")
     monkeypatch.setenv("TIMBREGRID_HOST", "0.0.0.0")
     monkeypatch.setenv("TIMBREGRID_PORT", "9999")
+    monkeypatch.setenv("TIMBREGRID_BENCHMARK_DIR", "benchmarks/custom")
 
-    assert resolve_serve_config("fake:tts", "127.0.0.1", 7777) == (
+    assert resolve_serve_config(
         "fake:tts",
         "127.0.0.1",
         7777,
+        Path("benchmarks/args"),
+    ) == (
+        "fake:tts",
+        "127.0.0.1",
+        7777,
+        Path("benchmarks/args"),
     )
 
 

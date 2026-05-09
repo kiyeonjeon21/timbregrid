@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 
 from timbregrid.models import SpeechRequest
 from timbregrid.routing import RouteNotFound, resolve_route
@@ -26,6 +27,38 @@ def test_auto_prefers_real_adapter_when_available(monkeypatch) -> None:
     decision = resolve_route(_request(response_format="wav", purpose="realtime"))
 
     assert decision.selected_model == "kokoro:82m"
+    assert decision.benchmark_data == "not_configured"
+
+
+def test_auto_uses_benchmark_when_target_latency_is_requested(monkeypatch) -> None:
+    _mock_find_spec(monkeypatch, kokoro_available=True)
+
+    decision = resolve_route(
+        _request(response_format="wav", purpose="realtime", target_latency_ms=350),
+        benchmark_dir=Path("benchmarks/examples"),
+    )
+
+    assert decision.selected_model == "fake:tts"
+    assert decision.benchmark_data == "used"
+    assert decision.selected_benchmark is not None
+    assert decision.selected_benchmark.time_to_first_audio_ms == 0.0
+
+
+def test_auto_filters_benchmarks_by_hardware_profile(monkeypatch) -> None:
+    _mock_find_spec(monkeypatch, kokoro_available=True)
+
+    decision = resolve_route(
+        _request(
+            response_format="wav",
+            purpose="realtime",
+            target_latency_ms=350,
+            hardware_profile="missing-profile",
+        ),
+        benchmark_dir=Path("benchmarks/examples"),
+    )
+
+    assert decision.selected_model == "kokoro:82m"
+    assert decision.benchmark_data == "missing"
 
 
 def test_auto_filters_by_response_format(monkeypatch) -> None:
