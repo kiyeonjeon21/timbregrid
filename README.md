@@ -3,7 +3,7 @@
 > The open compatibility grid for synthetic speech.
 > Manifests, benchmarks, conformance tests, routing policy, provenance, and a reference OpenAI-compatible gateway for OSS TTS.
 
-**Status**: spec + static registry + optional Kokoro adapter MVP implementation
+**Status**: spec + static registry + routing policy + optional Kokoro adapter MVP implementation
 **Research snapshot**: 2026-05-09  
 **License (planned)**: MIT for TimbreGrid core; upstream model licenses are preserved per model manifest.
 
@@ -48,6 +48,17 @@ uv run timbregrid registry build --check
 - Registry index: [`registry/index.json`](registry/index.json)
 - Support matrix: [`docs/support-matrix.md`](docs/support-matrix.md)
 
+Explain manifest-first routing for `model="auto"`:
+
+```bash
+uv run timbregrid route explain \
+  --model auto \
+  --voice alloy \
+  --response-format wav \
+  --purpose realtime \
+  --license-policy commercial_ok
+```
+
 ### Docker Quickstart
 
 Run the fake gateway container:
@@ -79,6 +90,7 @@ Works today:
 
 - validate TimbreGrid model manifests from YAML;
 - generate a static model registry index and support matrix from manifests;
+- route `model="auto"` requests by manifest capabilities, response format, availability, and license policy;
 - run a fake-adapter benchmark suite and write raw JSON output;
 - serve an OpenAI-compatible `POST /v1/audio/speech` endpoint for `fake:tts`;
 - run a speech conformance suite with per-case JSON reports against that endpoint;
@@ -89,7 +101,7 @@ Not included yet:
 
 - KittenTTS, Chatterbox, or Qwen3-TTS inference adapters;
 - SQLite metadata storage, hosted registry publishing, or voice provenance storage;
-- SSE audio streaming or long-form dialogue routing.
+- SSE audio streaming, benchmark-aware routing, or long-form dialogue routing.
 
 `manifests/kokoro-82m.yaml` is executable only when optional Kokoro dependencies are installed.
 
@@ -278,9 +290,10 @@ capabilities:
   multilingual: limited
   long_form: limited
   style_control: speed
+  formats: [wav, pcm]
 audio:
   sample_rate_hz: 24000
-  formats: [wav, mp3, pcm]
+  formats: [wav, pcm]
 voices:
   builtin: true
   custom: false
@@ -501,7 +514,7 @@ Initial implementation should prefer **FastAPI** because the model wrappers and 
 - [x] Kokoro adapter as the first fast baseline (optional `timbregrid[kokoro]`);
 - [ ] KittenTTS adapter for edge/CPU lane;
 - [ ] one expressive or cloning backend: Chatterbox or Qwen3-TTS;
-- [ ] `model="auto"` routing by purpose, hardware, license policy, and benchmark data (partial: `auto` resolves to the serve default);
+- [ ] `model="auto"` routing by purpose, hardware, license policy, and benchmark data (partial: manifest-first routing by purpose, response format, availability, and license policy exists; benchmark/hardware scoring is not yet implemented);
 - [x] Docker image with one-command local serving for the fake gateway.
 
 ### Phase 3: Community Registry
@@ -547,7 +560,7 @@ Success means:
 
 ## Next Milestones
 
-1. **Routing policy**: make `model="auto"` choose adapters by purpose, hardware, license policy, and benchmark data.
+1. **Benchmark-aware routing**: make `model="auto"` incorporate raw benchmark data and hardware profiles.
 2. **Voice provenance**: add local voice records, consent metadata, and `/v1/audio/voices`.
 3. **Manifest contribution path**: add a PR template and broader manifest validation for external model submissions.
 

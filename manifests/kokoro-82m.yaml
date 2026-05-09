@@ -18,10 +18,10 @@ capabilities:
   multilingual: limited
   long_form: limited
   style_control: speed
-  formats: [wav, mp3, pcm]
+  formats: [wav, pcm]
 audio:
   sample_rate_hz: 24000
-  formats: [wav, mp3, pcm]
+  formats: [wav, pcm]
 voices:
   builtin: true
   custom: false

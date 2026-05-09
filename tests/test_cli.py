@@ -97,6 +97,56 @@ def test_registry_build_check_cli_detects_stale_artifacts(tmp_path: Path) -> Non
     assert "Registry artifacts are stale" in result.stderr
 
 
+def test_route_explain_cli_writes_json(monkeypatch) -> None:
+    monkeypatch.setattr("timbregrid.registry.importlib.util.find_spec", lambda _: None)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "route",
+            "explain",
+            "--model",
+            "auto",
+            "--voice",
+            "alloy",
+            "--response-format",
+            "wav",
+            "--purpose",
+            "realtime",
+            "--license-policy",
+            "commercial_ok",
+        ],
+    )
+
+    assert result.exit_code == 0
+    body = json.loads(result.stdout)
+    assert body["selected_model"] == "fake:tts"
+    assert body["applied_hints"]["purpose"] == "realtime"
+
+
+def test_route_explain_cli_returns_no_route(monkeypatch) -> None:
+    monkeypatch.setattr("timbregrid.registry.importlib.util.find_spec", lambda _: None)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "route",
+            "explain",
+            "--model",
+            "auto",
+            "--voice",
+            "alloy",
+            "--response-format",
+            "wav",
+            "--purpose",
+            "cloning",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "No route found" in result.stderr
+
+
 def test_resolve_serve_config_defaults(monkeypatch) -> None:
     monkeypatch.delenv("TIMBREGRID_MODEL", raising=False)
     monkeypatch.delenv("TIMBREGRID_HOST", raising=False)

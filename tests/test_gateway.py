@@ -22,6 +22,46 @@ def test_speech_endpoint_returns_audio_bytes() -> None:
     assert response.content.startswith(b"RIFF")
 
 
+def test_speech_endpoint_routes_auto_to_available_model(monkeypatch) -> None:
+    monkeypatch.setattr("timbregrid.registry.importlib.util.find_spec", lambda _: None)
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "auto",
+            "input": "Hello",
+            "voice": "alloy",
+            "response_format": "wav",
+            "purpose": "realtime",
+            "license_policy": "commercial_ok",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["x-timbregrid-model"] == "fake:tts"
+    assert "selected fake:tts" in response.headers["x-timbregrid-route-reason"]
+
+
+def test_speech_endpoint_returns_no_route_for_auto(monkeypatch) -> None:
+    monkeypatch.setattr("timbregrid.registry.importlib.util.find_spec", lambda _: None)
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "auto",
+            "input": "Hello",
+            "voice": "alloy",
+            "response_format": "wav",
+            "purpose": "cloning",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "no_route_found"
+
+
 def test_speech_endpoint_rejects_missing_required_field() -> None:
     client = TestClient(create_app())
 

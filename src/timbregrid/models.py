@@ -7,6 +7,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 AudioFormat = Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]
 SupportedFakeFormat = Literal["mp3", "wav", "pcm"]
+RoutingPurpose = Literal["realtime", "narration", "cloning", "dialogue", "edge", "multilingual"]
+LicensePolicy = Literal["any", "commercial_ok", "permissive_only", "research_only"]
 
 
 class Acceleration(BaseModel):
@@ -100,6 +102,9 @@ class SpeechRequest(BaseModel):
     speed: Annotated[float, Field(ge=0.25, le=4.0)] = 1.0
     stream_format: str | None = None
     instructions: str | None = None
+    purpose: RoutingPurpose | None = None
+    target_latency_ms: Annotated[int | None, Field(gt=0)] = None
+    license_policy: LicensePolicy = "any"
 
     @field_validator("stream_format")
     @classmethod

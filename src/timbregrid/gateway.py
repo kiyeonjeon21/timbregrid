@@ -11,6 +11,7 @@ from timbregrid.adapters.base import AdapterDependencyError
 from timbregrid.errors import openai_error
 from timbregrid.models import SpeechRequest
 from timbregrid.registry import get_adapter
+from timbregrid.routing import RouteNotFound, resolve_route
 
 
 SUPPORTED_OUTPUT_FORMATS = {"mp3", "wav", "pcm"}
@@ -60,7 +61,17 @@ def create_app(default_model: str = "fake:tts") -> FastAPI:
                 code="unsupported_response_format",
             )
 
-        selected_model = default_model if request.model == "auto" else request.model
+        try:
+            route = resolve_route(request, default_model=default_model)
+        except RouteNotFound as exc:
+            return openai_error(
+                str(exc),
+                param="model",
+                code="no_route_found",
+            )
+
+        selected_model = route.selected_model
+        routed_request = request.model_copy(update={"model": selected_model})
 
         try:
             adapter = get_adapter(selected_model)
@@ -73,7 +84,7 @@ def create_app(default_model: str = "fake:tts") -> FastAPI:
             )
 
         try:
-            result = adapter.synthesize(request)
+            result = adapter.synthesize(routed_request)
         except AdapterDependencyError as exc:
             return openai_error(
                 str(exc),
@@ -89,6 +100,7 @@ def create_app(default_model: str = "fake:tts") -> FastAPI:
             media_type="application/octet-stream",
             headers={
                 "X-TimbreGrid-Model": result.model,
+                "X-TimbreGrid-Route-Reason": route.reason,
                 "X-TimbreGrid-Audio-Format": result.format,
                 "X-TimbreGrid-Sample-Rate": str(result.sample_rate_hz),
             },

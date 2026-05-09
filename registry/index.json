@@ -60,7 +60,6 @@
       "audio": {
         "formats": [
           "wav",
-          "mp3",
           "pcm"
         ],
         "sample_rate_hz": 24000
@@ -69,7 +68,6 @@
       "capabilities": {
         "formats": [
           "wav",
-          "mp3",
           "pcm"
         ],
         "long_form": "limited",

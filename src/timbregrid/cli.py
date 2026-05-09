@@ -11,18 +11,21 @@ from timbregrid.bench import run_benchmark, write_benchmark
 from timbregrid.conformance import run_conformance, write_conformance_report
 from timbregrid.gateway import create_app
 from timbregrid.manifest import ManifestError, load_manifest
+from timbregrid.models import SpeechRequest
 from timbregrid.registry import get_model_entry, list_models
 from timbregrid.registry_index import (
     RegistryIndexError,
     stale_registry_artifacts,
     write_registry_artifacts,
 )
+from timbregrid.routing import RouteNotFound, resolve_route
 
 
 app = typer.Typer(help="TimbreGrid compatibility and evaluation tools.")
 manifest_app = typer.Typer(help="Validate and inspect model manifests.")
 models_app = typer.Typer(help="List and inspect known TTS models.")
 registry_app = typer.Typer(help="Build static registry artifacts.")
+route_app = typer.Typer(help="Explain automatic model routing.")
 
 
 @manifest_app.command("validate")
@@ -105,6 +108,35 @@ def build_registry(
     typer.echo(f"Wrote {matrix}")
 
 
+@route_app.command("explain")
+def explain_route(
+    model: Annotated[str, typer.Option("--model")] = "auto",
+    voice: Annotated[str, typer.Option("--voice")] = "alloy",
+    response_format: Annotated[str, typer.Option("--response-format")] = "wav",
+    purpose: Annotated[str | None, typer.Option("--purpose")] = None,
+    target_latency_ms: Annotated[int | None, typer.Option("--target-latency-ms")] = None,
+    license_policy: Annotated[str, typer.Option("--license-policy")] = "any",
+    default_model: Annotated[str, typer.Option("--default-model")] = "fake:tts",
+    input_text: Annotated[str, typer.Option("--input")] = "Hello from TimbreGrid",
+) -> None:
+    try:
+        request = SpeechRequest(
+            model=model,
+            input=input_text,
+            voice=voice,
+            response_format=response_format,
+            purpose=purpose,
+            target_latency_ms=target_latency_ms,
+            license_policy=license_policy,
+        )
+        decision = resolve_route(request, default_model=default_model)
+    except (ValueError, RouteNotFound) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(json.dumps(decision.to_dict(), indent=2, sort_keys=True))
+
+
 @app.command()
 def conformance(
     base_url: Annotated[str, typer.Argument()],
@@ -185,6 +217,7 @@ def _env_port() -> int:
 app.add_typer(manifest_app, name="manifest")
 app.add_typer(models_app, name="models")
 app.add_typer(registry_app, name="registry")
+app.add_typer(route_app, name="route")
 
 
 if __name__ == "__main__":
