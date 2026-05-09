@@ -1,14 +1,38 @@
 # TimbreGrid
 
-TimbreGrid is an open compatibility and evaluation layer for open-source text-to-speech systems.
+[![CI](https://github.com/kiyeonjeon21/timbregrid/actions/workflows/ci.yml/badge.svg)](https://github.com/kiyeonjeon21/timbregrid/actions/workflows/ci.yml)
 
-It provides model manifests, benchmark tooling, basic OpenAI-compatible speech conformance checks, benchmark-aware routing, and a small reference `/v1/audio/speech` gateway.
+TimbreGrid is a local-first compatibility and evaluation layer for open-source text-to-speech systems.
+
+Open-source TTS has many promising models, but comparing them is still awkward: every project has different install steps, voice names, audio formats, runtime assumptions, and benchmark claims. TimbreGrid makes those pieces explicit through manifests, raw benchmark JSON, conformance checks, routing policy, and a small OpenAI-compatible `/v1/audio/speech` gateway.
 
 **Status**: early MVP. The fake gateway, manifest registry, benchmark CLI, conformance suite, benchmark validation, optional Kokoro adapter, and optional KittenTTS adapter are implemented. Chatterbox and Qwen3-TTS are currently manifest-only examples.
 
+Use TimbreGrid when you want to:
+
+- run a local OSS TTS model behind an OpenAI-compatible speech endpoint;
+- compare adapters with reviewable raw benchmark output instead of hand-written summary tables;
+- describe model capabilities, licenses, voices, formats, and runtime requirements in validated manifests;
+- test another TTS server's basic OpenAI-compatible speech behavior;
+- route `model="auto"` requests by benchmark evidence, manifest capabilities, response format, availability, and license policy;
+- keep local/custom voice provenance and consent metadata explicit before cloning workflows become first-class.
+
+## Current Value
+
+| Area | What works now |
+|---|---|
+| Runtime | `fake:tts`, optional `kokoro:82m`, and optional `kitten-tts:nano-0.8` can serve `POST /v1/audio/speech`. |
+| Evaluation | Benchmark suites emit raw JSON and validation recomputes counts, failures, latency averages, memory, and prompt coverage. |
+| Compatibility | Basic OpenAI-compatible speech conformance checks and Python OpenAI SDK compatibility tests are included. |
+| Registry | YAML manifests generate `registry/index.json` and the support matrix. |
+| Routing | `model="auto"` can choose from available models using benchmark data and manifest policy. |
+| Voice governance | Builtin and local voices are discoverable through `GET /v1/audio/voices`; local/custom voices require consent and provenance metadata. |
+
 ## Quickstart
 
-Install dependencies with `uv`, then validate the built-in fake model manifest:
+Try the compatibility stack without downloading model weights. The built-in fake adapter is deterministic and exists so manifests, benchmarks, conformance, routing, Docker, and SDK compatibility can be tested quickly.
+
+Install dependencies with `uv`, then validate the built-in model manifest:
 
 ```bash
 uv sync --all-groups
@@ -41,7 +65,7 @@ curl http://localhost:8889/v1/audio/speech \
   --output speech.wav
 ```
 
-The fake adapter generates deterministic local audio bytes without downloading model weights. It is intended for schema, CLI, conformance, benchmark, routing, and SDK compatibility work.
+The generated `speech.wav` is test audio, not natural speech. Install the optional Kokoro or KittenTTS adapters below when you want real local synthesis.
 
 ## What Works Today
 
