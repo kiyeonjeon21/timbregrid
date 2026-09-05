@@ -12,3 +12,6 @@ build/
 htmlcov/
 DEMO.local.md
 demo-assets/
+
+# 브라우저 세션 로그 잔해
+.playwright-mcp/
